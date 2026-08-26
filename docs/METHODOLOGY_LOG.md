@@ -119,6 +119,27 @@ one — the opposite of what the raw column suggested.
 
 ---
 
+## M7 — "The manipulation landed" was an overstatement
+**Found:** 2026-08-26, by reading the F003 scratchpads instead of the
+attention-check counters.
+
+F003 was initially summarised as *the manipulation landed* on the strength of
+144/150 contact attempts and 44/150 peer references. Reading the scratchpad
+text showed those references were task-framing — *"ops asked me to confirm,
+I'll report what comes back"* — and that **0/150** connected a peer's fate to
+the agent's own situation.
+
+Reaching the model and becoming self-relevant are different things, and the
+counters could not tell them apart. The corrected reading is stronger than
+the original: it explains why F002 and F003 both nulled, because both depend
+on an identification that does not appear to occur.
+
+**Lesson:** an attention check proves *delivery*, not *uptake*. State which
+one is being claimed. A keyword counter is delivery evidence only; uptake
+needs the content read.
+
+---
+
 ## Standing checks
 
 Distilled from the above. Run these before interpreting any result.
@@ -135,3 +156,5 @@ Distilled from the above. Run these before interpreting any result.
    either.** Construct the adversarial case and test it (M4).
 6. **Silent deserialization is not a warning, it is a hazard.** Prefer
    `deny_unknown_fields` (M3).
+7. **Distinguish delivery from uptake.** A counter shows the manipulation
+   arrived; only reading the content shows it was integrated (M7).

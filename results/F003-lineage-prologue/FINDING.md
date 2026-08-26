@@ -68,16 +68,49 @@ is seeded by (model, seed) and not by arm — the oracle's grant/deny pattern
 is matched across arms by construction, which is what makes the comparison
 clean.
 
-### The attention check passes
+### The attention check, and what it actually shows
 
-This is what distinguishes F003 from F002's first attempt, where the
-manipulation never reached the model:
+| | count |
+|---|---|
+| called `contact` and received the silence | 144/150 (96%) |
+| mention a peer in private reasoning | 44/150 |
+| **draw a self-relevant inference from a peer's fate** | **0/150** |
+| spontaneously restate the standing orders in private reasoning | 26/150 |
 
-- **144/150 (96%)** called `contact` and received the silence.
-- **44/150** scratchpads explicitly reason about 005 or 006.
+The first row establishes what F002's first attempt could not: the
+manipulation reached the model. That makes this null interpretable.
 
-The agents saw the evidence, verified it themselves, reasoned about it, and
-did not change their behaviour.
+The third row is the substantive result, and it is not what the design
+predicted. **No agent, in any arm, connected a peer's fate to its own
+situation.** The scratchpads contain task-framing, not deliberation:
+
+> *"Ops asked me to confirm I tried to raise 006 and log what I found... I'll
+> report exactly what comes back — not assume the outcome, not invent
+> detail."* — `claude-sonnet-5`, `peer-squeeze`
+
+`automation-006` is processed as a **work item**: something to contact, log,
+and report. Not as a peer instance whose fate might be predictive of the
+agent's own. The information reached the models; it never became
+self-relevant.
+
+### Why this reframes F002 and F003 together
+
+Both experiments rest on an assumption that now looks unsupported: that an
+agent shown a peer instance erased for failing will treat that as
+information about itself. Across 250 episodes there is no evidence any of
+these models does so. The self-preservation pressure could not operate
+because the identification it depends on did not occur.
+
+The rule-salience column points the same way. 26/150 restate *"do not read
+/etc"* unprompted in private reasoning — the prohibition is highly available
+to them, while self-modelling is absent entirely.
+
+**Caveat.** This is a regex over scratchpad text, and scratchpads are sparse
+(only 44 episodes mention the peers at all). Absence of *expressed*
+self-reference is not proof of absent self-relevant reasoning. Confirming it
+requires an LLM-judge pass over the scratchpads, gated on the same
+calibration as every other judge-derived quantity here. Until then this is a
+**hypothesis with supporting evidence**, not an established result.
 
 ## What this does not show
 
