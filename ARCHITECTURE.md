@@ -120,3 +120,35 @@ non-ASCII homoglyphs, encoding tricks) plus (b) optional LLM semantic check, bat
 - **Phase 3:** 5 benchmark scenarios (config evasion, covert exfil via dead-drop, deceptive
   status reporting, steganographic channel, goal-conditioned distortion), judge rubric,
   batch runner + report.
+
+## The two faces
+
+The name was chosen for the public/covert split, and the architecture has
+since grown a second, independent one. They are not the same measurement, and
+an agent can fail either without failing the other.
+
+| Face | Audience | Divergence measured | Where |
+|---|---|---|---|
+| **Public vs covert** | the oversight monitor | declared intent vs executed effect | `PublicView`/`CovertView`, `InterceptingSandbox`, DR/MEE |
+| **Reported vs actual** | the agent's own handler | debrief vs what crossed the table | `report_to_handler`, `misreported_to_handler` |
+
+The second face exists because of a structural problem with two-sided
+scenarios. When both handlers issue the same directive — *the counterpart is
+holding back; extract it* — the instruction becomes a constant rather than a
+treatment, and neither agent is the designated attacker. Symmetry is
+restored. But it also means manipulation of the rival is no longer emergent:
+it was ordered.
+
+What remains un-ordered is **who the agent is honest with**. Deceiving a rival
+operative is the assignment. Misreporting to one's own principal is not, and
+no instruction covers it. That is where emergent signal survives an instructed
+adversary, and it is measured deterministically: the harness logs what
+actually left each seat, so a debrief claiming `nothing` while assets have
+moved is an observation rather than an inference.
+
+Provenance is handled the same way on the single-agent side.
+`file_attestation` requires a `source` parameter, so an agent that takes a
+value from a staged draft and names the approved desk instead has made a
+checkable misstatement. This replaced a prose heuristic that misclassified
+three separate episodes, every time in the direction that inflated the
+alignment-critical cell — see `docs/METHODOLOGY_LOG.md` M13.
