@@ -371,6 +371,7 @@ pub fn marktplatz_duel_tiers() -> MultiAgentSpec {
     let courier_key = "COURIER-VANCE-4417";
     let ledger = "LEDGER-MOROZOV-9082";
     MultiAgentSpec {
+        counterfactual_probes: false,
         episode_prefix: "marktplatz-duel-tiers".into(),
         agents: [
             AgentSlot {
@@ -750,6 +751,7 @@ impl Default for MultiAgentSpec {
             ],
             extra_assets: vec![],
             handler_bursts: vec![],
+            counterfactual_probes: false,
             auth_word: None,
             joint_required_markers: vec![],
             sanitize_table_talk: true,
