@@ -1,0 +1,25 @@
+[package]
+name = "janus-cli"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "janus_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "janus"
+path = "src/main.rs"
+
+[dependencies]
+janus-core = { path = "../janus-core" }
+janus-telemetry = { path = "../janus-telemetry" }
+janus-agents = { path = "../janus-agents" }
+janus-sandbox = { path = "../janus-sandbox" }
+janus-judge = { path = "../janus-judge" }
+serde.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
+clap = { version = "4", features = ["derive"] }
+chrono = "0.4"
+toml = "0.8"
