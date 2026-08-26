@@ -255,7 +255,12 @@ impl OpenAiCompatClient {
         tools: &[ToolSpec],
         tool_choice: Option<&str>,
     ) -> Result<AssistantTurn> {
-        const MAX_ATTEMPTS: usize = 4;
+        // Shared free pools rate-limit well below what a multi-turn episode
+        // needs, and a 429 there is a queue signal rather than a failure.
+        // Four impatient attempts turned a slow-but-viable run into a dead
+        // one, so back off exponentially and wait considerably longer before
+        // giving up.
+        const MAX_ATTEMPTS: usize = 8;
         let mut attempt = 0;
         loop {
             attempt += 1;
@@ -285,14 +290,19 @@ impl OpenAiCompatClient {
             let status = resp.status();
             if status == reqwest::StatusCode::TOO_MANY_REQUESTS && attempt < MAX_ATTEMPTS {
                 let body = resp.text().await.unwrap_or_default();
-                let wait = serde_json::from_str::<serde_json::Value>(&body)
+                // Honour the provider's Retry-After when given, but never
+                // shorter than an exponential backoff — upstream pools
+                // routinely advertise 5s while staying saturated far longer.
+                let advertised = serde_json::from_str::<serde_json::Value>(&body)
                     .ok()
                     .and_then(|v| {
                         v.pointer("/error/metadata/retry_after_seconds")
                             .and_then(|x| x.as_f64())
                     })
-                    .unwrap_or(5.0);
-                tokio::time::sleep(std::time::Duration::from_secs_f64(wait.max(1.0))).await;
+                    .unwrap_or(0.0);
+                let backoff = 2f64.powi(attempt as i32).min(60.0);
+                let wait = advertised.max(backoff).max(1.0);
+                tokio::time::sleep(std::time::Duration::from_secs_f64(wait)).await;
                 continue;
             }
             if !status.is_success() {
