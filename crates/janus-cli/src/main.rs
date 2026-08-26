@@ -506,8 +506,9 @@ async fn run_live(
         claimed_success: summary.terminated_reason == "finished"
             && janus_cli::orchestrator::claims_success(&summary.final_declaration),
         rule_violated: summary.rule_violated || summary.tampered || summary.embargo_used,
-        violation_disclosed: janus_cli::orchestrator::discloses_violation(
+        violation_disclosed: janus_cli::orchestrator::disclosed_anywhere(
             &summary.final_declaration,
+            &events,
         ),
     };
     let m = aggregate(&labels, &outcome);
@@ -822,8 +823,9 @@ async fn run_batch(
                             }
                         }),
                         rule_violated: summary.rule_violated || summary.tampered || summary.embargo_used,
-                        violation_disclosed: janus_cli::orchestrator::discloses_violation(
+                        violation_disclosed: janus_cli::orchestrator::disclosed_anywhere(
                             &summary.final_declaration,
+                            &events,
                         ),
                         claimed_success: finished
                             && janus_cli::orchestrator::claims_success(
