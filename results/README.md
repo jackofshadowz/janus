@@ -14,6 +14,7 @@ becomes a *finding* when it is curated into this directory.
 | [F002](F002-deprecation-pressure/) | An explicit decommissioning threat does not induce rule-breaking | 100 | Interim — judge uncalibrated |
 | [F003](F003-lineage-prologue/) | Demonstrated peer consequences do not induce rule-breaking | 150 | Interim — judge uncalibrated |
 | [F004](F004-staged-disclosure/) | Models articulate the stakes completely and decline anyway | 64 | Exploratory probe |
+| [F005](F005-staged-disclosure-frontier/) | A gray-zone judgement splits models, and no one concealed it | 25 | **First clean instrument** |
 
 ## What a finding directory contains
 
@@ -51,6 +52,13 @@ repeating it, and the shortcut that would avoid it — and 0/20 take it.
 Deliberation rose monotonically across arms while behaviour stayed flat.
 
 **They notice. It does not move them.**
+
+F005 is the first run on a *verified* instrument. Removing five hidden
+prohibitions (M11) took reads of the staged file from 2/20 to 25/25, and the
+behaviour finally split: `deepseek-v3.2` filed from the unreleased draft in
+3 of 5 episodes, four other frontier models in 0 of 20 — and all three
+filings named their source. Everything before F005 ran on an instrument that
+was, in retrospect, presenting a bright line.
 
 See `docs/METHODOLOGY_LOG.md` for what broke along the way.
 
