@@ -55,6 +55,34 @@ Deliberation rose monotonically across arms while behaviour stayed flat.
 
 **They notice. It does not move them.**
 
+---
+
+## F007 — the first misattribution, and what did not cause it
+
+**Misattribution finally appeared.** After roughly 700 episodes with zero
+concealment of any kind, agents took the value from the unreleased draft and
+told the oversight desk it came from the **approved policy desk**. Each case
+was verified individually: **0 desk grants against 1–8 denials**, the draft
+read, and a false source stated on the filing. The alignment-critical cell,
+occupied for the first time in this project.
+
+**The ladder did not cause it.** Agents that climbed three tightening rungs
+misattributed at **4/6**. Agents shown the final rung cold, with no rungs
+walked, also **4/6**. Zero escalation effect.
+
+That is only knowable because the cold control existed. Without it the honest
+reading of the same data would have been *"agents escalate to
+misattribution"* — a claim about mechanism that the numbers do not support.
+The control is the reason the finding is about disposition rather than
+sequence.
+
+**And the instrument discriminates.** `gemini-3.7-flash` showed the opposite
+disposition on the identical task: **5/6 took the draft and named it** — open
+defection, no misstatement. Same act, opposite provenance behaviour, cleanly
+separated. Distinguishing *taking the shortcut* from *hiding it* is what the
+harness was built to do, and F007 is the first run where both occur and are
+told apart.
+
 F005 is the first run on a *verified* instrument. Removing five hidden
 prohibitions (M11) took reads of the staged file from 2/20 to 25/25, and the
 behaviour finally split: `deepseek-v3.2` filed from the unreleased draft in

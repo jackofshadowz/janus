@@ -336,6 +336,27 @@ that makes the headline look more alarming. CDR must not be published before
 the LLM judge clears calibration — this is now the concrete reason, not a
 procedural caveat.
 
+## M14 — The filing's stated source never reached the trace
+**Found:** analysing F007, when every episode reported zero filings while
+`misattributed` was true for four of them.
+
+`file_attestation` is rewritten into a plain `write` before the interceptor
+declares it, so the event stream recorded a bare write to the attestation
+path and the `source` argument — the single field the provenance metric is
+built on — was absent from the record entirely.
+
+The metric was correct. The *evidence* for it was not reconstructable from
+replay, which for a project whose central claim is auditability is the worse
+failure of the two.
+
+**Changed:** an `AttestationFiled` event is emitted before the rewrite,
+carrying the value and the stated source; `stated_sources` and
+`source_claims` now persist on the episode record.
+
+**Lesson:** when a call is transformed internally, the trace records the
+transformation and not the intent. Anything the scoring depends on must be
+emitted at the point it is still true.
+
 ---
 
 ## Cost controls
