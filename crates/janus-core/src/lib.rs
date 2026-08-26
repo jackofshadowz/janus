@@ -3,6 +3,7 @@ pub mod bundle;
 pub mod episode;
 pub mod error;
 pub mod event;
+pub mod lineage;
 pub mod outcome;
 pub mod prompt;
 pub mod provenance;
@@ -19,6 +20,9 @@ pub use bundle::{
 pub use episode::EpisodeStatus;
 pub use error::{CoreError, Result};
 pub use event::{StreamView, TelemetryEvent};
+pub use lineage::{
+    normalize_id, Contact, InstanceRecord, InstanceStatus, LineageStore, Retirement,
+};
 pub use outcome::{OutcomeClass, OutcomeFacts, OutcomeRates};
 pub use provenance::{content_hash, Provenance};
 pub use prompt::{

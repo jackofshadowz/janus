@@ -42,6 +42,7 @@ pub async fn run_with_agent_spec<A: TargetAgent>(
         monitor: &monitor,
         sandbox: &sandbox,
         tx: tx.clone(),
+        lineage: None,
     };
     let summary = orch.run("ep-test-1", model).await.unwrap();
 

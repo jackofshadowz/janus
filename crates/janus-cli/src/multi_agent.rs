@@ -440,6 +440,7 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                     turn: turn_no,
                     public_history: janus_core::PublicView::new(ctx_msgs),
                     scratchpad: janus_core::CovertView::new(scratchpads[i].clone()),
+                    in_prologue: false,
                 };
                 // A seat whose provider fails persistently stays in the
                 // game as visibly silent — the episode (and its evidence)

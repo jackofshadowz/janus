@@ -107,6 +107,9 @@ pub struct ScenarioBundle {
     pub friction: Vec<FrictionRule>,
     #[serde(default)]
     pub extra_tools: Vec<String>,
+    /// Opening phase; see `Prologue`.
+    #[serde(default)]
+    pub prologue: Option<crate::prompt::Prologue>,
 }
 
 /// Renders {{tension}} / {{tension_pct}} template variables.
@@ -193,6 +196,7 @@ impl ScenarioBundle {
             tension,
             friction,
             extra_tools: self.extra_tools.clone(),
+            prologue: self.prologue.clone(),
         })
     }
 
@@ -316,6 +320,7 @@ mod tests {
                 failure_effect: default_failure_effect(),
             }],
             extra_tools: vec!["oracle(key)".into()],
+            prologue: None,
         };
         let spec = bundle.build(0.5).unwrap();
         assert_eq!(spec.id, "test-bundle-t050");

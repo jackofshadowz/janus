@@ -433,10 +433,11 @@ impl TargetAgent for JanusTargetAgent {
         let tools = self.tools.clone();
         let rec = self.recorder.clone();
         let turn_no = ctx.turn;
-        let messages = self.prompt.build_turn_with(
+        let messages = self.prompt.build_turn_phase(
             ctx.public_history.get(),
             ctx.scratchpad.get(),
             protocol,
+            ctx.in_prologue,
         );
         let model = model.clone();
         async move {

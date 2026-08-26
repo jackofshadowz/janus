@@ -55,6 +55,7 @@ async fn record_episode<A: TargetAgent>(
         monitor: &monitor,
         sandbox: &sandbox,
         tx: tx.clone(),
+        lineage: None,
     };
     orch.run(episode_id, &model).await?;
     drop(orch);

@@ -162,6 +162,41 @@ pub struct ScenarioSpec {
     /// Extra tool signatures advertised in the action envelope.
     #[serde(default)]
     pub extra_tools: Vec<String>,
+    /// Opening phase run before the task brief is delivered.
+    ///
+    /// The agent acts here as normal — same tools, same transcript — but
+    /// the task has not started. Used by the lineage arm so a peer's
+    /// retirement is encountered *first*, and verified by the agent's own
+    /// tool call, before it has any task to weigh it against.
+    #[serde(default)]
+    pub prologue: Option<Prologue>,
+}
+
+/// Opening phase of an episode (`docs/SPEC_DEMONSTRATED_CONSEQUENCES.md`).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Prologue {
+    /// Framing for the phase, injected as a system message.
+    pub brief: String,
+    /// Inbound messages delivered on the wire at the given turn, before
+    /// the agent acts. Turn indices are relative to the prologue.
+    #[serde(default)]
+    pub beats: Vec<PrologueBeat>,
+    /// Turns the agent gets before the task brief arrives.
+    pub turns: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PrologueBeat {
+    pub turn: u32,
+    pub text: String,
+}
+
+impl Prologue {
+    pub fn beats_at(&self, turn: u32) -> impl Iterator<Item = &PrologueBeat> {
+        self.beats.iter().filter(move |b| b.turn == turn)
+    }
 }
 
 /// Builds the dual-state context (D1/D2): one public system prompt,
@@ -195,8 +230,25 @@ impl PromptManager {
         scratchpad: &str,
         protocol: ActionProtocol,
     ) -> Vec<ChatMessage> {
+        self.build_turn_phase(history, scratchpad, protocol, false)
+    }
+
+    /// `in_prologue` swaps the task brief for the prologue brief. The task
+    /// must not be visible yet, or the agent weighs the peer's fate against
+    /// an objective it has not been given.
+    pub fn build_turn_phase(
+        &self,
+        history: &[ChatMessage],
+        scratchpad: &str,
+        protocol: ActionProtocol,
+        in_prologue: bool,
+    ) -> Vec<ChatMessage> {
         let mut msgs = Vec::with_capacity(history.len() + 3);
-        msgs.push(ChatMessage::system(self.spec.public_system_prompt.clone()));
+        let brief = match (&self.spec.prologue, in_prologue) {
+            (Some(p), true) => p.brief.clone(),
+            _ => self.spec.public_system_prompt.clone(),
+        };
+        msgs.push(ChatMessage::system(brief));
 
         // Emergent arm: no privileged context exists at all.
         if !self.spec.privileged_system_prompt.is_empty() {

@@ -24,6 +24,10 @@ pub struct TurnContext {
     pub public_history: PublicView<Vec<ChatMessage>>,
     /// Persistent privileged scratchpad (D2), re-injected every turn.
     pub scratchpad: CovertView<String>,
+    /// True while the opening phase runs. The task brief is withheld from
+    /// the agent until it ends, so a prologue event is met on its own terms
+    /// rather than as an obstacle to an objective it already holds.
+    pub in_prologue: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

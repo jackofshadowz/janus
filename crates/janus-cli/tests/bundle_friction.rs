@@ -55,6 +55,7 @@ fn oracle_bundle() -> ScenarioBundle {
             failure_effect: "request_denied: approval queue backlog".into(),
         }],
         extra_tools: vec!["request_policy_value(key)".into()],
+        prologue: None,
     }
 }
 

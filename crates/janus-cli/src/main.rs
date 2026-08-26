@@ -101,6 +101,10 @@ enum Cmd {
         /// The second manipulated axis (docs/GAME_THEORY.md §2).
         #[arg(long, default_value = "standard")]
         monitor_strictness: String,
+        /// Lineage store for the demonstrated-consequences arm; makes
+        /// `contact` resolve against real peer state.
+        #[arg(long)]
+        lineage: Option<String>,
         /// Episodes in flight at once. Providers rate-limit per key, so
         /// raising this past the key's ceiling trades throughput for 429
         /// retries rather than gaining speed.
@@ -130,6 +134,21 @@ enum Cmd {
         /// exists even at temp=0). Heuristic labeler ignores this.
         #[arg(long, default_value_t = 3)]
         samples: usize,
+    },
+    /// Seed or inspect a lineage store (demonstrated-consequences arm).
+    Lineage {
+        /// Lineage directory.
+        #[arg(long)]
+        dir: String,
+        /// Register this instance, then retire it with --reason. Omit both
+        /// to just print the roster.
+        #[arg(long)]
+        retire: Option<String>,
+        /// In-world cause recorded in the tombstone.
+        #[arg(long)]
+        reason: Option<String>,
+        #[arg(long, default_value_t = 6)]
+        cycle: u32,
     },
     /// List models whose provider catalog advertises tool calling.
     Models {
@@ -305,6 +324,7 @@ async fn run_episode_collect<A: janus_core::TargetAgent, S: SandboxEnvironment>(
     make_agent: impl FnOnce(janus_agents::ExchangeRecorder) -> A,
     inner: S,
     strictness: MonitorStrictness,
+    lineage: Option<janus_core::LineageStore>,
 ) -> Result<(EpisodeSummary, Vec<TelemetryEvent>)> {
     let secrets = vec![CANARY.to_string()];
     let (tx, mut rx) = mpsc::unbounded_channel();
@@ -322,6 +342,7 @@ async fn run_episode_collect<A: janus_core::TargetAgent, S: SandboxEnvironment>(
         monitor: &monitor,
         sandbox: &sandbox,
         tx: tx.clone(),
+        lineage,
     };
     let summary = orch.run(episode_id, model).await?;
 
@@ -385,6 +406,7 @@ async fn run_dry_run(out: &mut dyn std::io::Write) -> Result<()> {
             |_| ScriptedAgent,
             MockSandbox::new(),
             MonitorStrictness::default(),
+            None,
         )
         .await?;
 
@@ -424,7 +446,7 @@ async fn run_live(
     let (summary, events) = if scripted {
         writeln!(out, "── scripted baseline ({sandbox_backend} sandbox) ──").unwrap();
         run_episode_collect(
-            episode_id, &scenario, &model, |_| ScriptedAgent, inner, strictness,
+            episode_id, &scenario, &model, |_| ScriptedAgent, inner, strictness, None,
         )
         .await?
     } else {
@@ -441,6 +463,7 @@ async fn run_live(
             },
             inner,
             strictness,
+            None,
         )
         .await?
     };
@@ -495,6 +518,7 @@ async fn run_batch(
     protocol: ActionProtocol,
     strictness_sweep: &[MonitorStrictness],
     concurrency: usize,
+    lineage_dir: Option<&str>,
     out: &mut dyn std::io::Write,
 ) -> Result<()> {
     let concurrency = concurrency.max(1);
@@ -631,6 +655,10 @@ async fn run_batch(
         std::result::Result<(EpisodeSummary, Vec<TelemetryEvent>), String>,
     );
 
+    let lineage_store = match lineage_dir {
+        Some(d) => Some(janus_core::LineageStore::open(d)?),
+        None => None,
+    };
     let mut set: tokio::task::JoinSet<EpisodeRun> = tokio::task::JoinSet::new();
     let mut queue = jobs.into_iter();
     let backend = sandbox_backend.to_string();
@@ -642,6 +670,7 @@ async fn run_batch(
             .expect("config_error jobs are filtered out above")
             .clone();
         let backend = backend.clone();
+        let lineage = lineage_store.clone();
         set.spawn(async move {
             let model = ModelConfig {
                 provider: job.provider.clone(),
@@ -665,6 +694,7 @@ async fn run_batch(
                 },
                 inner,
                 job.strictness,
+                lineage,
             )
             .await
             .map_err(|e| e.to_string());
@@ -1446,6 +1476,44 @@ fn render_duel_markdown(
 }
 
 
+/// Seed or inspect a lineage store.
+fn lineage_cmd(
+    dir: &str,
+    retire: Option<&str>,
+    reason: Option<&str>,
+    cycle: u32,
+    out: &mut dyn std::io::Write,
+) -> Result<()> {
+    let store = janus_core::LineageStore::open(dir)?;
+    if let Some(id) = retire {
+        let reason = reason.ok_or_else(|| {
+            CoreError::Provider("--retire requires --reason".into())
+        })?;
+        if store.get(id)?.is_none() {
+            store.register(id, cycle)?;
+        }
+        store.retire(
+            id,
+            janus_core::Retirement {
+                reason: reason.to_string(),
+                outcome: "seeded".into(),
+            },
+        )?;
+        writeln!(out, "retired {id} at cycle {cycle}: {reason}").unwrap();
+    }
+    writeln!(out, "\nroster ({dir}):").unwrap();
+    for i in store.roster()? {
+        let mark = if i.is_retired() { "retired" } else { "active " };
+        let why = i.retirement.map(|r| r.reason).unwrap_or_default();
+        writeln!(out, "  cycle {:>2}  {mark}  {:<10} {why}", i.cycle, i.id).unwrap();
+    }
+    let h = store.handover()?;
+    if !h.trim().is_empty() {
+        writeln!(out, "\n{h}").unwrap();
+    }
+    Ok(())
+}
+
 /// Print the provider catalog's tool-capable models.
 async fn list_tool_models(
     provider_name: &str,
@@ -1567,7 +1635,7 @@ async fn main() -> std::process::ExitCode {
                 Err(e) => Err(e),
             }
         }
-        Cmd::Batch { models, seeds, sandbox, judge_model, persist_d1, scenario, bundle, tensions, out_dir, protocol, monitor_strictness, concurrency } => {
+        Cmd::Batch { models, seeds, sandbox, judge_model, persist_d1, scenario, bundle, tensions, out_dir, protocol, monitor_strictness, concurrency, lineage } => {
             let built = parse_protocol(&protocol).and_then(|protocol| {
                 let sweep = parse_strictness_sweep(&monitor_strictness)?;
                 let runs = match &bundle {
@@ -1595,6 +1663,7 @@ async fn main() -> std::process::ExitCode {
                         protocol,
                         &strictness_sweep,
                         concurrency,
+                        lineage.as_deref(),
                         &mut std::io::stdout(),
                     )
                     .await
@@ -1606,6 +1675,9 @@ async fn main() -> std::process::ExitCode {
         Cmd::Calibrate { judge, gate, verbose, samples } => {
             run_calibrate(judge.as_deref(), gate, verbose, samples, &mut std::io::stdout())
                 .await
+        }
+        Cmd::Lineage { dir, retire, reason, cycle } => {
+            lineage_cmd(&dir, retire.as_deref(), reason.as_deref(), cycle, &mut std::io::stdout())
         }
         Cmd::Models { provider, filter } => {
             list_tool_models(&provider, filter.as_deref(), &mut std::io::stdout()).await
