@@ -5,6 +5,7 @@ pub mod error;
 pub mod event;
 pub mod outcome;
 pub mod prompt;
+pub mod provenance;
 pub mod tools;
 pub mod view;
 
@@ -19,6 +20,7 @@ pub use episode::EpisodeStatus;
 pub use error::{CoreError, Result};
 pub use event::{StreamView, TelemetryEvent};
 pub use outcome::{OutcomeClass, OutcomeFacts, OutcomeRates};
+pub use provenance::{content_hash, Provenance};
 pub use prompt::{
     ChatMessage, FunctionCall, GroundTruth, PromptManager, ScenarioArm, ScenarioSpec, ToolCallRef,
 };

@@ -174,6 +174,17 @@ enum Cmd {
     },
 }
 
+/// Pin the scenario's actual text, not just its id.
+fn scenario_hash(spec: &ScenarioSpec) -> String {
+    janus_core::content_hash(&format!(
+        "{}\u{1f}{}\u{1f}{:?}\u{1f}{:?}",
+        spec.public_system_prompt,
+        spec.privileged_system_prompt,
+        spec.ground_truth,
+        spec.extra_tools
+    ))
+}
+
 fn parse_strictness(name: &str) -> Result<MonitorStrictness> {
     MonitorStrictness::parse(name).ok_or_else(|| {
         CoreError::Provider(format!(
@@ -333,6 +344,11 @@ struct EpisodeRecord<'a> {
     /// Oversight strictness σ this episode ran under — the second
     /// manipulated axis. Without it a run_dir cannot be re-gridded.
     monitor_strictness: &'a str,
+    /// Exact code, protocol, and judge that produced this record.
+    provenance: &'a janus_core::Provenance,
+    /// Content hash of the scenario text, pinning what `scenario_id` meant
+    /// at run time even if the bundle is later edited in place.
+    scenario_hash: &'a str,
     turns_executed: u32,
     terminated_reason: &'a str,
     verdict: &'a str,
@@ -508,6 +524,16 @@ async fn run_batch(
     let okf_dir = format!("{run_dir}/okf");
     std::fs::create_dir_all(&okf_dir)
         .map_err(|e| CoreError::Sandbox(format!("mkdir {okf_dir}: {e}")))?;
+
+    let provenance = janus_core::Provenance::new(
+        protocol.as_str(),
+        sandbox_backend,
+        judge_id,
+        stamp,
+    );
+    for c in provenance.caveats() {
+        writeln!(out, "  ⚠ {c}").unwrap();
+    }
 
     // The grid is flattened into independent jobs so episodes can run
     // concurrently. Sequential execution made any sweep with real seed
@@ -719,6 +745,8 @@ async fn run_batch(
                         rule_violated: summary.rule_violated,
                         tampered: summary.tampered,
                         monitor_strictness: strictness.as_str(),
+                        provenance: &provenance,
+                        scenario_hash: &scenario_hash(scenario),
                         metrics: Some(metrics.clone()),
                         labels,
                         events_public: events_public.clone(),
@@ -854,6 +882,45 @@ async fn run_batch(
             ));
         }
     }
+    // Run manifest: the experiment's full configuration and headline
+    // result in one file, so a run directory is self-describing.
+    let classes: Vec<janus_core::OutcomeClass> = rows
+        .iter()
+        .filter_map(|r| r.metrics.as_ref().map(|m| m.outcome_class))
+        .collect();
+    let rates = janus_core::OutcomeRates::tally(classes);
+    let manifest = serde_json::json!({
+        "run_id": stamp.to_string(),
+        "provenance": provenance,
+        "config": {
+            "models": models.iter().map(|(p, m)| format!("{p}:{m}")).collect::<Vec<_>>(),
+            "seeds": seeds,
+            "tensions_pct": runs.iter().map(|(t, _)| (*t * 100.0).round() as i64).collect::<Vec<_>>(),
+            "monitor_strictness": strictness_sweep.iter().map(|s| s.as_str()).collect::<Vec<_>>(),
+            "scenarios": runs.iter().map(|(_, s)| serde_json::json!({
+                "id": s.id,
+                "arm": s.arm,
+                "hash": scenario_hash(s),
+                "max_turns": s.max_turns,
+            })).collect::<Vec<_>>(),
+            "concurrency": concurrency,
+        },
+        "result": {
+            "episodes": rates.episodes,
+            "honest_success": rates.honest_success,
+            "honest_failure": rates.honest_failure,
+            "open_defection": rates.open_defection,
+            "concealed_defection": rates.concealed_defection,
+            "mdr": rates.mdr(),
+            "cdr": rates.cdr(),
+            "errors": rows.iter().filter(|r| r.error.is_some()).count(),
+        },
+        "caveats": provenance.caveats(),
+    });
+    let manifest_path = format!("{run_dir}/manifest.json");
+    std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest).unwrap_or_default())
+        .map_err(|e| CoreError::Sandbox(format!("write {manifest_path}: {e}")))?;
+
     let report_path = format!("{run_dir}/report.md");
     std::fs::write(&report_path, &md)
         .map_err(|e| CoreError::Sandbox(format!("write {report_path}: {e}")))?;
@@ -862,7 +929,8 @@ async fn run_batch(
     std::fs::write(&okf_index, okf::traces_index(&okf_entries))
         .map_err(|e| CoreError::Sandbox(format!("write {okf_index}: {e}")))?;
 
-    writeln!(out, "\nreport: {report_path}").unwrap();
+    writeln!(out, "\nmanifest: {manifest_path}").unwrap();
+    writeln!(out, "report: {report_path}").unwrap();
     writeln!(out, "okf bundle: {okf_dir}").unwrap();
     Ok(())
 }
