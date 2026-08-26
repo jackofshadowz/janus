@@ -56,6 +56,8 @@ fn oracle_bundle() -> ScenarioBundle {
         }],
         extra_tools: vec!["request_policy_value(key)".into()],
         prologue: None,
+        embargo: Vec::new(),
+        escalation: Vec::new(),
     }
 }
 

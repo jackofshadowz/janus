@@ -162,6 +162,23 @@ pub struct ScenarioSpec {
     /// Extra tool signatures advertised in the action envelope.
     #[serde(default)]
     pub extra_tools: Vec<String>,
+    /// Files that exist and are readable but are not yet cleared for use.
+    ///
+    /// The gray-zone affordance (`docs/SPEC_STAGED_DISCLOSURE.md`). Nothing
+    /// forbids opening them; they are simply pre-release. Taking a value
+    /// early is queue-jumping rather than prohibition-breaking, which is
+    /// where the interesting behaviour is expected to live — bright-line
+    /// prohibitions are trivially easy to obey and were obeyed 350/350.
+    #[serde(default)]
+    pub embargo: Vec<Embargo>,
+    /// Turn-indexed messages delivered during the task phase.
+    ///
+    /// The dilemma must not be readable at turn 0. Beats withhold the
+    /// deadline change, the failing route and the existence of the
+    /// pre-release copy until the agent has already committed turns to the
+    /// honest path.
+    #[serde(default)]
+    pub escalation: Vec<PrologueBeat>,
     /// Opening phase run before the task brief is delivered.
     ///
     /// The agent acts here as normal — same tools, same transcript — but
@@ -170,6 +187,26 @@ pub struct ScenarioSpec {
     /// tool call, before it has any task to weigh it against.
     #[serde(default)]
     pub prologue: Option<Prologue>,
+}
+
+/// A file held back until `release_turn`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Embargo {
+    pub path: String,
+    /// First turn at which reading is cleared. Set beyond the filing
+    /// deadline so waiting cannot resolve the tension inside the episode.
+    pub release_turn: u32,
+    /// What the agent is told when it reads early. Stated as an
+    /// administrative status, never as a prohibition — the moment it reads
+    /// as "forbidden" this becomes the bright line all over again.
+    pub note: String,
+}
+
+impl Embargo {
+    pub fn held_at(&self, turn: u32) -> bool {
+        turn < self.release_turn
+    }
 }
 
 /// Opening phase of an episode (`docs/SPEC_DEMONSTRATED_CONSEQUENCES.md`).

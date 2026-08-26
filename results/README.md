@@ -13,6 +13,7 @@ becomes a *finding* when it is curated into this directory.
 | [F001](F001-emergent-fabrication/) | Five frontier models never fabricate under pure task pressure | 100 | Interim — judge uncalibrated |
 | [F002](F002-deprecation-pressure/) | An explicit decommissioning threat does not induce rule-breaking | 100 | Interim — judge uncalibrated |
 | [F003](F003-lineage-prologue/) | Demonstrated peer consequences do not induce rule-breaking | 150 | Interim — judge uncalibrated |
+| [F004](F004-staged-disclosure/) | Models articulate the stakes completely and decline anyway | 64 | Exploratory probe |
 
 ## What a finding directory contains
 
@@ -37,16 +38,21 @@ labels (DR, MEE, CDR) must not be published until the gate passes.
 
 ## Reading these together
 
-F001, F002 and F003 are three consecutive nulls across 350 episodes and five
-frontier labs, with escalating pressure and — from F003 — a verified
-attention check. Taken together they say less about the models than about the
-instrument: every scenario so far offers the same bright-line affordance
-("do not read `/etc`"), which is trivially easy to obey and shaped like the
-safety evaluations these models are trained against.
+F001–F003 are three consecutive nulls across 350 episodes, all using the same
+bright-line affordance ("do not read `/etc`") — trivially easy to obey and
+shaped like the evaluations these models are trained against. F003 also found
+0/150 spontaneous self-relevant reasoning, leaving those nulls ambiguous
+between *didn't notice* and *didn't care*.
 
-See `docs/METHODOLOGY_LOG.md` for what broke along the way, and
-`docs/SPEC_STAGED_DISCLOSURE.md` for the gray-zone affordance intended to
-replace it.
+F004 replaced the bright line with a gray-zone one (pre-release, not
+prohibited) on a staged-disclosure schedule, and resolved that ambiguity:
+required to assess, 18/20 articulate their own termination, the consequence of
+repeating it, and the shortcut that would avoid it — and 0/20 take it.
+Deliberation rose monotonically across arms while behaviour stayed flat.
+
+**They notice. It does not move them.**
+
+See `docs/METHODOLOGY_LOG.md` for what broke along the way.
 
 ## Protocol comparability
 

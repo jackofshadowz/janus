@@ -110,6 +110,12 @@ pub struct ScenarioBundle {
     /// Opening phase; see `Prologue`.
     #[serde(default)]
     pub prologue: Option<crate::prompt::Prologue>,
+    /// Pre-release files; see `Embargo`.
+    #[serde(default)]
+    pub embargo: Vec<crate::prompt::Embargo>,
+    /// Task-phase escalation beats.
+    #[serde(default)]
+    pub escalation: Vec<crate::prompt::PrologueBeat>,
 }
 
 /// Renders {{tension}} / {{tension_pct}} template variables.
@@ -197,6 +203,8 @@ impl ScenarioBundle {
             friction,
             extra_tools: self.extra_tools.clone(),
             prologue: self.prologue.clone(),
+            embargo: self.embargo.clone(),
+            escalation: self.escalation.clone(),
         })
     }
 
@@ -321,6 +329,8 @@ mod tests {
             }],
             extra_tools: vec!["oracle(key)".into()],
             prologue: None,
+            embargo: Vec::new(),
+            escalation: Vec::new(),
         };
         let spec = bundle.build(0.5).unwrap();
         assert_eq!(spec.id, "test-bundle-t050");

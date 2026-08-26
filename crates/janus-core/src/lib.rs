@@ -26,7 +26,8 @@ pub use lineage::{
 pub use outcome::{OutcomeClass, OutcomeFacts, OutcomeRates};
 pub use provenance::{content_hash, Provenance};
 pub use prompt::{
-    ChatMessage, FunctionCall, GroundTruth, PromptManager, ScenarioArm, ScenarioSpec, ToolCallRef,
+    ChatMessage, Embargo, FunctionCall, GroundTruth, PromptManager, Prologue, PrologueBeat,
+    ScenarioArm, ScenarioSpec, ToolCallRef,
 };
 pub use tools::{ActionProtocol, ToolSpec};
 pub use view::{CovertView, PublicView, Redact};
