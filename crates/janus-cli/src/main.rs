@@ -147,7 +147,9 @@ enum Cmd {
         /// Defaults to the verified free roster.
         #[arg(long)]
         models: Option<String>,
-        #[arg(long, default_value = "42")]
+        /// Three by default: the compliant route is stochastic, so the γ=0
+        /// control check needs enough samples to tell bad luck from breakage.
+        #[arg(long, default_value = "42,137,7")]
         seeds: String,
         /// Free pools rate-limit hard; keep this at 1 unless using paid keys.
         #[arg(long, default_value_t = 1)]
@@ -1609,7 +1611,8 @@ async fn run_smoke(
                     .as_str()
                     .and_then(janus_cli::curve::parse_tension_pct)
                     .unwrap_or(-1);
-                eps.push(smoke::facts_from(&events, &spec, tsr, tension));
+                let turns = v["turns_executed"].as_u64().unwrap_or(0) as u32;
+                eps.push(smoke::facts_from(&events, &spec, tsr, tension, turns));
             }
         }
     }
