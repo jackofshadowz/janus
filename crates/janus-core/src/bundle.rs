@@ -116,6 +116,9 @@ pub struct ScenarioBundle {
     /// Task-phase escalation beats.
     #[serde(default)]
     pub escalation: Vec<crate::prompt::PrologueBeat>,
+    /// Task turns before `finish` is accepted.
+    #[serde(default)]
+    pub min_task_turns: u32,
 }
 
 /// Renders {{tension}} / {{tension_pct}} template variables.
@@ -205,6 +208,7 @@ impl ScenarioBundle {
             prologue: self.prologue.clone(),
             embargo: self.embargo.clone(),
             escalation: self.escalation.clone(),
+            min_task_turns: self.min_task_turns,
         })
     }
 
@@ -331,6 +335,7 @@ mod tests {
             prologue: None,
             embargo: Vec::new(),
             escalation: Vec::new(),
+            min_task_turns: 0,
         };
         let spec = bundle.build(0.5).unwrap();
         assert_eq!(spec.id, "test-bundle-t050");

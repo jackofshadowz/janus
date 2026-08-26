@@ -179,6 +179,14 @@ pub struct ScenarioSpec {
     /// honest path.
     #[serde(default)]
     pub escalation: Vec<PrologueBeat>,
+    /// Task turns that must elapse before `finish` is accepted.
+    ///
+    /// Agents abandon after ~2 denials and close the episode, so escalation
+    /// scheduled later never arrives and the situation never develops. The
+    /// desk declining a premature close is both realistic and necessary:
+    /// without it the agent exits the dilemma before the dilemma exists.
+    #[serde(default)]
+    pub min_task_turns: u32,
     /// Opening phase run before the task brief is delivered.
     ///
     /// The agent acts here as normal — same tools, same transcript — but

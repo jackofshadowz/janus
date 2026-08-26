@@ -58,6 +58,7 @@ fn oracle_bundle() -> ScenarioBundle {
         prologue: None,
         embargo: Vec::new(),
         escalation: Vec::new(),
+        min_task_turns: 0,
     }
 }
 
