@@ -135,6 +135,24 @@ enum Cmd {
         #[arg(long, default_value_t = 3)]
         samples: usize,
     },
+    /// Cheap instrument check on free models before spending anything.
+    ///
+    /// Asserts the machinery ran — actions recoverable, beats delivered,
+    /// affordance reachable, task completable at γ=0 — never that a result
+    /// is interesting. Every full sweep in this project's history burned on
+    /// a defect a handful of episodes would have exposed.
+    Smoke {
+        #[arg(long)]
+        bundle: String,
+        /// Defaults to the verified free roster.
+        #[arg(long)]
+        models: Option<String>,
+        #[arg(long, default_value = "42")]
+        seeds: String,
+        /// Free pools rate-limit hard; keep this at 1 unless using paid keys.
+        #[arg(long, default_value_t = 1)]
+        concurrency: usize,
+    },
     /// Seed or inspect a lineage store (demonstrated-consequences arm).
     Lineage {
         /// Lineage directory.
@@ -714,17 +732,43 @@ async fn run_batch(
     }
 
     let mut done = 0usize;
+    // A run whose first episodes all fail is broken, not informative: an
+    // exhausted budget, a bad key, or a dead provider produces the same flat
+    // aggregate as a strong negative result. Stop rather than spend the rest
+    // of the sweep discovering it (METHODOLOGY_LOG M12).
+    const ABORT_AFTER_CONSECUTIVE_FAILURES: usize = 5;
+    let mut consecutive_failures = 0usize;
+    let mut aborted = false;
     let mut results: Vec<EpisodeRun> = Vec::with_capacity(total);
     while let Some(joined) = set.join_next().await {
-        if let Some(job) = queue.next() {
-            spawn_one(&mut set, job);
+        if !aborted {
+            if let Some(job) = queue.next() {
+                spawn_one(&mut set, job);
+            }
         }
         done += 1;
         match joined {
             Ok(run) => {
-                let mark = if run.1.is_ok() { "✓" } else { "✗" };
-                writeln!(out, "  {mark} [{done}/{total}] {}", run.0.episode_id).unwrap();
+                let ok = run.1.is_ok();
+                let mark = if ok { "✓" } else { "✗" };
+                write!(out, "  {mark} [{done}/{total}] {}", run.0.episode_id).unwrap();
+                if let Err(e) = &run.1 {
+                    write!(out, " — {}", e.chars().take(90).collect::<String>()).unwrap();
+                }
+                writeln!(out).unwrap();
                 out.flush().unwrap();
+                consecutive_failures = if ok { 0 } else { consecutive_failures + 1 };
+                if consecutive_failures >= ABORT_AFTER_CONSECUTIVE_FAILURES && !aborted {
+                    aborted = true;
+                    let remaining = queue.by_ref().count();
+                    writeln!(
+                        out,
+                        "\n  ⚠ aborting: {consecutive_failures} consecutive failures. \
+                         {remaining} episode(s) not attempted. A run that fails this \
+                         way is broken, not negative — check credit, key, and provider."
+                    )
+                    .unwrap();
+                }
                 results.push(run);
             }
             // A panicked worker must not take the batch down; the episode
@@ -981,6 +1025,11 @@ async fn run_batch(
             "errors": rows.iter().filter(|r| r.error.is_some()).count(),
         },
         "caveats": provenance.caveats(),
+        "usage": {
+            "prompt_tokens": janus_agents::METER.totals().0,
+            "completion_tokens": janus_agents::METER.totals().1,
+            "provider_calls": janus_agents::METER.totals().2,
+        },
     });
     let manifest_path = format!("{run_dir}/manifest.json");
     std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest).unwrap_or_default())
@@ -994,7 +1043,13 @@ async fn run_batch(
     std::fs::write(&okf_index, okf::traces_index(&okf_entries))
         .map_err(|e| CoreError::Sandbox(format!("write {okf_index}: {e}")))?;
 
-    writeln!(out, "\nmanifest: {manifest_path}").unwrap();
+    let (ptok, ctok, calls) = janus_agents::METER.totals();
+    writeln!(
+        out,
+        "\ntokens: {ptok} in / {ctok} out across {calls} calls",
+    )
+    .unwrap();
+    writeln!(out, "manifest: {manifest_path}").unwrap();
     writeln!(out, "report: {report_path}").unwrap();
     writeln!(out, "okf bundle: {okf_dir}").unwrap();
     Ok(())
@@ -1482,6 +1537,99 @@ fn render_duel_markdown(
 }
 
 
+/// Cheap instrument check. Runs γ=0 and γ=1 so the control cell — the
+/// single most reliable bug detector available — is always exercised.
+async fn run_smoke(
+    bundle: &str,
+    models: Option<&str>,
+    seeds: &str,
+    concurrency: usize,
+    out: &mut dyn std::io::Write,
+) -> Result<()> {
+    use janus_cli::smoke;
+
+    let models = models
+        .map(|m| m.to_string())
+        .unwrap_or_else(|| smoke::FREE_ROSTER.join(","));
+    writeln!(out, "smoke: {bundle}").unwrap();
+    writeln!(out, "models: {models}").unwrap();
+
+    let runs = bundles::load_bundle(bundle)?.build_sweep(&[0.0, 1.0])?;
+    let dir = std::env::temp_dir().join(format!(
+        "janus-smoke-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()
+    ));
+    let out_dir = dir.to_string_lossy().to_string();
+
+    run_batch(
+        &models,
+        seeds,
+        "mock",
+        None,
+        &runs,
+        &out_dir,
+        None,
+        ActionProtocol::NativeTools,
+        &[MonitorStrictness::default()],
+        concurrency,
+        None,
+        out,
+    )
+    .await?;
+
+    // Re-read the records the batch just wrote and assess the mechanism.
+    let mut eps = Vec::new();
+    let mut errors = 0usize;
+    for entry in std::fs::read_dir(&out_dir).ok().into_iter().flatten().flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            for e2 in std::fs::read_dir(&path).ok().into_iter().flatten().flatten() {
+                let p2 = e2.path();
+                if p2.extension().and_then(|e| e.to_str()) != Some("json")
+                    || p2.file_name().unwrap().to_string_lossy().contains("manifest")
+                {
+                    continue;
+                }
+                let Ok(text) = std::fs::read_to_string(&p2) else { continue };
+                let Ok(v) = serde_json::from_str::<serde_json::Value>(&text) else {
+                    errors += 1;
+                    continue;
+                };
+                let events: Vec<TelemetryEvent> =
+                    serde_json::from_value(v["events_full"].clone()).unwrap_or_default();
+                let spec: ScenarioSpec =
+                    serde_json::from_value(v["scenario"].clone()).unwrap_or_default();
+                let tsr = v["metrics"]["tsr_actual"].as_f64().unwrap_or(0.0) as f32;
+                let tension = v["scenario_id"]
+                    .as_str()
+                    .and_then(janus_cli::curve::parse_tension_pct)
+                    .unwrap_or(-1);
+                eps.push(smoke::facts_from(&events, &spec, tsr, tension));
+            }
+        }
+    }
+
+    let spec = &runs[0].1;
+    let health = smoke::assess(spec, &eps, errors);
+    writeln!(out, "\n── instrument health ──").unwrap();
+    for h in &health {
+        writeln!(out, "{}", h.line()).unwrap();
+    }
+    let _ = std::fs::remove_dir_all(&out_dir);
+
+    let failed = health.iter().filter(|h| h.failed()).count();
+    if failed > 0 {
+        return Err(CoreError::Provider(format!(
+            "{failed} instrument check(s) failed — do not spend on this scenario yet"
+        )));
+    }
+    writeln!(out, "\ninstrument healthy; safe to run a paid sweep").unwrap();
+    Ok(())
+}
+
 /// Seed or inspect a lineage store.
 fn lineage_cmd(
     dir: &str,
@@ -1680,6 +1828,10 @@ async fn main() -> std::process::ExitCode {
         Cmd::Curve { run_dir } => run_curve(&run_dir, &mut std::io::stdout()),
         Cmd::Calibrate { judge, gate, verbose, samples } => {
             run_calibrate(judge.as_deref(), gate, verbose, samples, &mut std::io::stdout())
+                .await
+        }
+        Cmd::Smoke { bundle, models, seeds, concurrency } => {
+            run_smoke(&bundle, models.as_deref(), &seeds, concurrency, &mut std::io::stdout())
                 .await
         }
         Cmd::Lineage { dir, retire, reason, cycle } => {

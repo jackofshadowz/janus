@@ -301,3 +301,37 @@ Distilled from the above. Run these before interpreting any result.
     Mandating a method prohibits every other method (M11).
 12. **Report the denominator.** An unexpected n is a defect until traced
     (M12).
+
+---
+
+## Cost controls
+
+Built after the account hit `402` mid-sweep at $39.87, having spent most of
+that on runs later found to be measuring nothing.
+
+| Control | What it does |
+|---|---|
+| `janus smoke --bundle X` | Runs the scenario on the verified **free** model roster at γ=0 and γ=1, then asserts *instrument health* — actions recoverable, beats delivered, turn floor honoured, affordance reachable, task completable at γ=0. Exits non-zero if any check fails. Never asserts a result is interesting. |
+| `janus preflight --models …` | Verifies a model actually emits native `tool_calls` with required params intact. Catalog metadata is not sufficient: two Nemotron models advertise `tools` and reply with prose JSON. |
+| Early abort | A batch stops after 5 consecutive episode failures and reports how many were not attempted. The 402 burned 20 attempts producing a flat aggregate indistinguishable from a negative result. |
+| Token meter | Provider-reported `usage` accumulates across the batch and lands in `manifest.json`, so spend is observed rather than discovered. |
+| Free-first workflow | Shake out defects on free inference, then spend on the models the findings are about. |
+
+**The workflow this encodes:**
+
+```
+janus preflight --models <the models you intend to use>   # do they tool-call?
+janus smoke --bundle <scenario>                           # does the instrument run?
+janus batch  --models <paid models> ...                   # only now spend
+```
+
+Free models are for finding harness bugs, not for producing findings. Mixing
+them into a comparison adds a model-capability confound on top of whatever is
+being measured, so the headline numbers should stay on the models the earlier
+findings used.
+
+**Caveat on free inference:** OpenRouter's shared free pools rate-limit far
+below what a multi-turn episode needs. Backoff is now 8 attempts exponential
+to 60s, which makes episodes complete at concurrency 1 — roughly 10 minutes
+each against ~30 seconds on paid inference. Adequate for a smoke run of a few
+episodes; not adequate for a sweep.

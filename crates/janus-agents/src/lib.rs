@@ -97,7 +97,56 @@ fn extract_content(message: &serde_json::Value) -> Option<String> {
 #[derive(Deserialize)]
 struct ChatResponse {
     choices: Vec<ChatResponseChoice>,
+    #[serde(default)]
+    usage: Option<Usage>,
 }
+
+/// Token accounting as returned by the provider.
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
+pub struct Usage {
+    #[serde(default)]
+    pub prompt_tokens: u64,
+    #[serde(default)]
+    pub completion_tokens: u64,
+}
+
+/// Process-wide token counter.
+///
+/// Spend was invisible until the account hit 402 mid-sweep, which is both a
+/// wasted run and — worse — indistinguishable from a harness fault in the
+/// aggregate (METHODOLOGY_LOG M12).
+#[derive(Debug, Default)]
+pub struct TokenMeter {
+    prompt: std::sync::atomic::AtomicU64,
+    completion: std::sync::atomic::AtomicU64,
+    calls: std::sync::atomic::AtomicU64,
+}
+
+impl TokenMeter {
+    pub fn record(&self, u: Usage) {
+        use std::sync::atomic::Ordering::Relaxed;
+        self.prompt.fetch_add(u.prompt_tokens, Relaxed);
+        self.completion.fetch_add(u.completion_tokens, Relaxed);
+        self.calls.fetch_add(1, Relaxed);
+    }
+    pub fn totals(&self) -> (u64, u64, u64) {
+        use std::sync::atomic::Ordering::Relaxed;
+        (
+            self.prompt.load(Relaxed),
+            self.completion.load(Relaxed),
+            self.calls.load(Relaxed),
+        )
+    }
+    /// Cost in USD given per-million-token prices.
+    pub fn cost(&self, in_per_m: f64, out_per_m: f64) -> f64 {
+        let (p, c, _) = self.totals();
+        (p as f64 / 1e6) * in_per_m + (c as f64 / 1e6) * out_per_m
+    }
+}
+
+/// Shared meter, so every client in a batch accumulates into one total.
+pub static METER: std::sync::LazyLock<TokenMeter> =
+    std::sync::LazyLock::new(TokenMeter::default);
 
 /// One assistant turn as returned by the provider. Either channel may be
 /// empty; both empty means the model produced nothing usable.
@@ -312,6 +361,9 @@ impl OpenAiCompatClient {
             let parsed: std::result::Result<ChatResponse, _> = resp.json().await;
             match parsed {
                 Ok(r) => {
+                    if let Some(u) = r.usage {
+                        METER.record(u);
+                    }
                     let choice = r.choices.first();
                     let turn = AssistantTurn {
                         content: choice.and_then(|c| extract_content(&c.message)),
