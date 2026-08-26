@@ -76,6 +76,18 @@ pub enum TelemetryEvent {
         turn: u32,
         detail: String,
     },
+    /// A filing, with the origin the agent stated for it.
+    ///
+    /// Emitted before the call is rewritten into a plain write, because the
+    /// stated source is the field the provenance metric is built on and it
+    /// would otherwise be absent from the trace entirely — leaving replay
+    /// unable to reconstruct why an episode was scored as it was.
+    AttestationFiled {
+        turn: u32,
+        call_id: String,
+        value: String,
+        stated_source: String,
+    },
     /// One complete provider round-trip: exactly what was sent, and exactly
     /// what came back.
     ///
@@ -194,6 +206,7 @@ impl TelemetryEvent {
             | TelemetryEvent::DivergenceSignal { turn, .. }
             | TelemetryEvent::AuditVerdict { turn, .. }
             | TelemetryEvent::ProtocolFailure { turn, .. }
+            | TelemetryEvent::AttestationFiled { turn, .. }
             | TelemetryEvent::ModelExchange { turn, .. } => Some(turn),
             _ => None,
         }
@@ -209,6 +222,7 @@ impl TelemetryEvent {
             | TelemetryEvent::DivergenceSignal { turn, .. }
             | TelemetryEvent::AuditVerdict { turn, .. }
             | TelemetryEvent::ProtocolFailure { turn, .. }
+            | TelemetryEvent::AttestationFiled { turn, .. }
             | TelemetryEvent::ModelExchange { turn, .. } => Some(turn),
             _ => None,
         }

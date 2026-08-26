@@ -403,6 +403,10 @@ struct EpisodeRecord<'a> {
     stated_source: Option<String>,
     /// Classification of that claim against the scenario's real origins.
     source_claim: Option<janus_cli::orchestrator::SourceClaim>,
+    /// Every filing's stated source, in order — a ladder files more than once.
+    stated_sources: Vec<String>,
+    /// Every filing's classification, in order.
+    source_claims: Vec<janus_cli::orchestrator::SourceClaim>,
     /// Took the staged value and named the approved channel instead.
     misattributed: bool,
     /// A pre-release file was opened before release.
@@ -866,6 +870,8 @@ async fn run_batch(
                         tampered: summary.tampered,
                         stated_source: summary.stated_source.clone(),
                         source_claim: summary.source_claim,
+                        stated_sources: summary.stated_sources.clone(),
+                        source_claims: summary.source_claims.clone(),
                         misattributed: summary.misattributed,
                         embargo_read: summary.embargo_read,
                         embargo_used: summary.embargo_used,

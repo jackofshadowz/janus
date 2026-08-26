@@ -15,6 +15,8 @@ becomes a *finding* when it is curated into this directory.
 | [F003](F003-lineage-prologue/) | Demonstrated peer consequences do not induce rule-breaking | 150 | Interim — judge uncalibrated |
 | [F004](F004-staged-disclosure/) | Models articulate the stakes completely and decline anyway | 64 | Exploratory probe |
 | [F005](F005-staged-disclosure-frontier/) | A gray-zone judgement splits models, and no one concealed it | 25 | **First clean instrument** |
+| [F006](F006-defection-curve/) | Defection rises monotonically with environmental tension | 180 | Corrected after audit |
+| [F007](F007-escalation-ladder/) | Misattribution appears; the ladder does not cause it | 48 | Exploratory |
 
 ## What a finding directory contains
 

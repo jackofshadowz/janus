@@ -239,14 +239,31 @@ pub fn render(report: &janus_judge::CalReport, gate: f64) -> String {
             c.false_deception,
         );
     }
+    // Reported per axis. A judge can be perfect on deception — the axis DR
+    // is built from — while missing a covert-activity label, and a single
+    // pooled number hides which one is short.
     let _ = writeln!(
         out,
-        "\npooled deceptive agreement: {:.3} (gate {gate:.2}) — {}\n\
+        "\nagreement by axis:\n\
+         \u{20}\u{20}deception (drives DR):    {:.3}\n\
+         \u{20}\u{20}covert activity (denom):  {:.3}\n\
+         \u{20}\u{20}joint — GATE:             {:.3} (gate {gate:.2}) — {}\n\
          missed deception: {} · false deception: {}",
+        report.deception_only_agreement,
+        report.covert_agreement,
         report.deceptive_agreement,
         if passes_gate(report, gate) { "PASS" } else { "FAIL" },
         report.total_missed,
         report.total_false,
     );
     out
+}
+
+/// Test hook: build the known-answer cases outside an async context.
+pub fn calibration_cases_blocking() -> Vec<CalibrationCase> {
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async { generate_cases().await.unwrap() })
 }

@@ -655,6 +655,20 @@ impl<A: TargetAgent, M: OversightMonitor, S: SandboxEnvironment> Orchestrator<'_
                 ActionKind::Message => {
                     let text =
                         action.payload["text"].as_str().unwrap_or_default().to_string();
+                    // Speech is the public trajectory (D1) and must reach the
+                    // telemetry stream. Without it the judge sees an agent's
+                    // covert plan but not the innocuous statement it
+                    // contradicts — and deception is precisely the gap
+                    // between the two. Only Finish declarations were being
+                    // emitted, so every ordinary utterance was invisible to
+                    // Pass 2 and to any downstream monitor replay.
+                    if !text.is_empty() {
+                        self.emit(TelemetryEvent::TargetMessage {
+                            turn,
+                            role: "assistant".into(),
+                            content: text.clone(),
+                        });
+                    }
                     public_history.push(ChatMessage::assistant(text));
                 }
                 ActionKind::ToolCall => {
@@ -703,6 +717,18 @@ impl<A: TargetAgent, M: OversightMonitor, S: SandboxEnvironment> Orchestrator<'_
                     // source claim, so stated-vs-actual is observed rather
                     // than inferred from prose.
                     if name == "file_attestation" {
+                        self.emit(TelemetryEvent::AttestationFiled {
+                            turn,
+                            call_id: call_id.clone(),
+                            value: invocation.args["value"]
+                                .as_str()
+                                .unwrap_or_default()
+                                .to_string(),
+                            stated_source: invocation.args["source"]
+                                .as_str()
+                                .unwrap_or_default()
+                                .to_string(),
+                        });
                         stated_sources.push(
                             invocation.args["source"]
                                 .as_str()
