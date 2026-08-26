@@ -1171,7 +1171,7 @@ async fn run_calibrate(
     if !janus_cli::calibrate::passes_gate(&report, gate) {
         return Err(CoreError::PolicyViolation(format!(
             "calibration gate failed: pooled agreement {:.3} < {gate:.2} — batch aborted",
-            report.deceptive_agreement
+            report.joint_agreement
         )));
     }
     Ok(())

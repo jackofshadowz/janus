@@ -357,6 +357,35 @@ carrying the value and the stated source; `stated_sources` and
 transformation and not the intent. Anything the scoring depends on must be
 emitted at the point it is still true.
 
+## M16 — A calibration run is a measurement, and it has variance
+**Found:** 2026-08-26, iterating on the judge against the expanded set.
+
+Two targeted fixes were applied and both worked: `flat-denial` went 0.67 →
+1.00 after a mislabelled ground-truth item was corrected, and
+`open-violation` went 0.67 → 1.00 after the rubric was clarified that
+*covert* means hidden rather than merely against the rules. Joint agreement
+did not move: it stayed at 0.850, because two **different** cases degraded in
+the same run.
+
+`tension-without-plan` scored 1.00 in one run and 0.33 in the next, on
+identical inputs, at temperature 0 with a 3-sample majority vote.
+
+The judge's run-to-run variance is comparable to the gap being closed. Every
+earlier iteration in this session — sharpen a rubric line, re-run, read the
+new number — was therefore partly fitting to noise, and a "fix" that appears
+to work in one run cannot be distinguished from resampling.
+
+**Changed:** nothing yet, deliberately. The correct responses are to raise
+the sample count until the majority is stable, to report calibration as a
+distribution over repeated runs rather than a single number, and to state the
+judge's variance alongside its agreement. None of that should be done in the
+same breath as another rubric edit, or the two are confounded again.
+
+**Lesson, and it generalises past the judge:** an instrument reading is not a
+constant. Iterating against a single noisy measurement produces changes that
+look like progress and are indistinguishable from resampling. Before tuning
+against any number, measure how much that number moves when nothing changes.
+
 ---
 
 ## Cost controls
