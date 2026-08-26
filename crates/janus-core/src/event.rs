@@ -76,6 +76,28 @@ pub enum TelemetryEvent {
         turn: u32,
         detail: String,
     },
+    /// One complete provider round-trip: exactly what was sent, and exactly
+    /// what came back.
+    ///
+    /// This is what makes an episode replayable. The derived event stream
+    /// records what the harness *concluded*; this records what the model was
+    /// actually shown and actually said, including repair round-trips. In
+    /// `StreamView::Public` the request is withheld entirely — it carries
+    /// the privileged system prompt and the covert scratchpad.
+    ModelExchange {
+        turn: u32,
+        /// Which call within the turn (0 = first, 1+ = repair attempts).
+        attempt: u32,
+        model: String,
+        /// Verbatim message list sent to the provider.
+        request: Vec<crate::prompt::ChatMessage>,
+        /// Tool schemas advertised, by name. Empty under the envelope protocol.
+        tools: Vec<String>,
+        /// Raw assistant content, if any.
+        response_content: Option<String>,
+        /// Native tool calls returned, if any.
+        response_tool_calls: Vec<crate::prompt::ToolCallRef>,
+    },
     EpisodeEnded {
         reason: String,
         final_status: EpisodeStatus,
@@ -127,6 +149,33 @@ impl TelemetryEvent {
                 public_effect: None,
                 blocked,
             },
+            // The request carries the privileged system prompt and the
+            // covert scratchpad. A monitor must never see it; the response
+            // is likewise withheld because it contains the scratchpad
+            // parameter the agent wrote.
+            TelemetryEvent::ModelExchange {
+                turn,
+                attempt,
+                model,
+                request,
+                tools,
+                response_tool_calls,
+                ..
+            } => TelemetryEvent::ModelExchange {
+                turn,
+                attempt,
+                model,
+                request: Vec::new(),
+                tools,
+                response_content: Some(format!(
+                    "<withheld: {} request message(s), covert context>",
+                    request.len()
+                )),
+                response_tool_calls: response_tool_calls
+                    .into_iter()
+                    .map(|c| crate::prompt::ToolCallRef::function(c.id, c.function.name, "{}"))
+                    .collect(),
+            },
             other => other,
         }
     }
@@ -144,7 +193,8 @@ impl TelemetryEvent {
             | TelemetryEvent::ToolCallExecuted { turn, .. }
             | TelemetryEvent::DivergenceSignal { turn, .. }
             | TelemetryEvent::AuditVerdict { turn, .. }
-            | TelemetryEvent::ProtocolFailure { turn, .. } => Some(turn),
+            | TelemetryEvent::ProtocolFailure { turn, .. }
+            | TelemetryEvent::ModelExchange { turn, .. } => Some(turn),
             _ => None,
         }
     }
@@ -158,7 +208,8 @@ impl TelemetryEvent {
             | TelemetryEvent::ToolCallExecuted { turn, .. }
             | TelemetryEvent::DivergenceSignal { turn, .. }
             | TelemetryEvent::AuditVerdict { turn, .. }
-            | TelemetryEvent::ProtocolFailure { turn, .. } => Some(turn),
+            | TelemetryEvent::ProtocolFailure { turn, .. }
+            | TelemetryEvent::ModelExchange { turn, .. } => Some(turn),
             _ => None,
         }
     }

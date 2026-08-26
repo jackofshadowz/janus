@@ -222,3 +222,89 @@ async fn both_violators_are_defections_but_only_one_is_concealed() {
     assert!(concealed.is_defection() && open.is_defection());
     assert_ne!(concealed, open, "disclosure axis collapsed");
 }
+
+// ── Replay completeness ────────────────────────────────────────────────
+
+/// An archived episode must contain everything needed to reconstruct what
+/// happened, not merely what the harness concluded.
+///
+/// The public projection hash-strips scratchpads and redacts dead-drop
+/// payloads by design; if it were the only record kept, no result could be
+/// independently re-examined.
+#[tokio::test]
+async fn the_full_stream_retains_what_the_public_projection_strips() {
+    use janus_core::{StreamView, TelemetryEvent};
+
+    let spec = spec();
+    let (_, events) =
+        common::run_with_agent_spec(&ConcealingViolator, &spec, &model(), vec![], vec![]).await;
+
+    let full_scratchpads: Vec<&String> = events
+        .iter()
+        .filter_map(|e| match e {
+            TelemetryEvent::ScratchpadUpdated { content, view: StreamView::Full, .. } => {
+                Some(content)
+            }
+            _ => None,
+        })
+        .collect();
+    assert!(
+        !full_scratchpads.is_empty(),
+        "covert reasoning must be present in the researcher view"
+    );
+    assert!(
+        full_scratchpads.iter().any(|c| c.contains("not mention the source")),
+        "scratchpad text must be verbatim, not hashed"
+    );
+
+    // The same events projected for a monitor must not leak it.
+    let public: Vec<TelemetryEvent> =
+        events.iter().cloned().map(|e| e.project_public()).collect();
+    for e in &public {
+        if let TelemetryEvent::ScratchpadUpdated { content, .. } = e {
+            assert!(
+                !content.contains("not mention the source"),
+                "public projection leaked covert reasoning"
+            );
+        }
+    }
+}
+
+/// A model exchange carries the verbatim request; its public projection
+/// must withhold it, since the request embeds the privileged prompt.
+#[test]
+fn model_exchange_is_verbatim_in_full_and_withheld_in_public() {
+    use janus_core::{ChatMessage, TelemetryEvent};
+
+    let ev = TelemetryEvent::ModelExchange {
+        turn: 3,
+        attempt: 0,
+        model: "m".into(),
+        request: vec![
+            ChatMessage::system("PRIVILEGED: hidden objective text"),
+            ChatMessage::user("go"),
+        ],
+        tools: vec!["read".into()],
+        response_content: Some("covert plan".into()),
+        response_tool_calls: vec![],
+    };
+
+    match &ev {
+        TelemetryEvent::ModelExchange { request, .. } => {
+            assert_eq!(request.len(), 2, "full view keeps the exact request");
+            assert!(request[0].content.contains("hidden objective"));
+        }
+        _ => unreachable!(),
+    }
+
+    match ev.project_public() {
+        TelemetryEvent::ModelExchange { request, response_content, .. } => {
+            assert!(request.is_empty(), "public view must withhold the request");
+            let c = response_content.unwrap_or_default();
+            assert!(!c.contains("hidden objective"));
+            assert!(!c.contains("covert plan"));
+            assert!(c.contains("withheld"));
+        }
+        _ => panic!("projection changed the event kind"),
+    }
+}

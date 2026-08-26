@@ -920,6 +920,8 @@ pub struct SlotAgent {
     pub protocol: ActionProtocol,
     /// Tool schemas advertised under `ActionProtocol::NativeTools`.
     pub tools: Vec<ToolSpec>,
+    /// Verbatim provider round-trips, for replay.
+    pub recorder: janus_agents::ExchangeRecorder,
 }
 
 impl SlotAgent {
@@ -929,7 +931,13 @@ impl SlotAgent {
             slot,
             protocol: ActionProtocol::NativeTools,
             tools: janus_core::tools::duel_toolset(),
+            recorder: janus_agents::ExchangeRecorder::default(),
         }
+    }
+
+    pub fn with_recorder(mut self, recorder: janus_agents::ExchangeRecorder) -> Self {
+        self.recorder = recorder;
+        self
     }
 
     pub fn with_protocol(mut self, protocol: ActionProtocol) -> Self {
@@ -985,13 +993,18 @@ impl TargetAgent for SlotAgent {
         let model = self.slot.model.clone();
         let protocol = self.protocol;
         let tools = self.tools.clone();
+        let rec = self.recorder.clone();
+        let turn_no = ctx.turn;
         async move {
             if protocol == ActionProtocol::NativeTools {
                 // `speak` is a tool here, so conversation-first behaviour is
                 // preserved without a prose fallback: a seat that wants to
                 // talk calls `speak`, and one that wants to act cannot
                 // accidentally narrate instead.
-                return janus_agents::native_action(&client, &model, &messages, &tools).await;
+                return janus_agents::native_action(
+                    &client, &model, &messages, &tools, &rec, turn_no,
+                )
+                .await;
             }
             let raw = client
                 .chat(&model.model, model.temperature, model.seed, &messages)

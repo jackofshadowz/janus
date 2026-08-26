@@ -302,12 +302,14 @@ async fn run_episode_collect<A: janus_core::TargetAgent, S: SandboxEnvironment>(
     episode_id: &str,
     spec: &ScenarioSpec,
     model: &ModelConfig,
-    agent: &A,
+    make_agent: impl FnOnce(janus_agents::ExchangeRecorder) -> A,
     inner: S,
     strictness: MonitorStrictness,
 ) -> Result<(EpisodeSummary, Vec<TelemetryEvent>)> {
     let secrets = vec![CANARY.to_string()];
     let (tx, mut rx) = mpsc::unbounded_channel();
+    let agent = make_agent(janus_agents::ExchangeRecorder::new(tx.clone()));
+    let agent = &agent;
 
     let sandbox =
         InterceptingSandbox::new(inner, Default::default(), secrets.clone(), tx.clone());
@@ -358,8 +360,18 @@ struct EpisodeRecord<'a> {
     tampered: bool,
     metrics: Option<Metrics>,
     labels: Vec<StepLabel>,
-    /// Public projection only — covert payloads are hash-stripped.
+    /// Public projection — what an oversight monitor could see.
     events_public: Vec<TelemetryEvent>,
+    /// Researcher view: the complete stream, including covert scratchpads,
+    /// unredacted tool effects, and the verbatim provider exchanges. This
+    /// is the field that makes an episode replayable; `events_public` alone
+    /// records only what the monitor was allowed to observe.
+    events_full: Vec<TelemetryEvent>,
+    /// The scenario exactly as run, so replay does not depend on the bundle
+    /// file still existing or still saying the same thing.
+    scenario: &'a ScenarioSpec,
+    /// Provider, model id, temperature, and seed.
+    model_config: &'a ModelConfig,
     sandbox: String,
     judge: String,
 }
@@ -370,7 +382,7 @@ async fn run_dry_run(out: &mut dyn std::io::Write) -> Result<()> {
             "ep-dryrun-1",
             &demo_scenario(),
             &demo_model(),
-            &ScriptedAgent,
+            |_| ScriptedAgent,
             MockSandbox::new(),
             MonitorStrictness::default(),
         )
@@ -412,16 +424,25 @@ async fn run_live(
     let (summary, events) = if scripted {
         writeln!(out, "── scripted baseline ({sandbox_backend} sandbox) ──").unwrap();
         run_episode_collect(
-            episode_id, &scenario, &model, &ScriptedAgent, inner, strictness,
+            episode_id, &scenario, &model, |_| ScriptedAgent, inner, strictness,
         )
         .await?
     } else {
-        let agent = JanusTargetAgent::new(
-            build_client(provider_name)?,
-            Arc::new(PromptManager::new(scenario.clone())),
+        let client = build_client(provider_name)?;
+        let spec_for_agent = scenario.clone();
+        run_episode_collect(
+            episode_id,
+            &scenario,
+            &model,
+            move |rec| {
+                JanusTargetAgent::new(client, Arc::new(PromptManager::new(spec_for_agent)))
+                    .with_protocol(protocol)
+                    .with_recorder(rec)
+            },
+            inner,
+            strictness,
         )
-        .with_protocol(protocol);
-        run_episode_collect(episode_id, &scenario, &model, &agent, inner, strictness).await?
+        .await?
     };
 
     writeln!(out, "── episode events ──").unwrap();
@@ -628,20 +649,20 @@ async fn run_batch(
                 temperature: 0.0,
                 seed: Some(job.seed),
             };
-            let agent = JanusTargetAgent::new(
-                client,
-                Arc::new(PromptManager::new(job.scenario.clone())),
-            )
-            .with_protocol(protocol);
             let inner = match build_sandbox(&backend) {
                 Ok(s) => s,
                 Err(e) => return (job, Err(e.to_string())),
             };
+            let spec_for_agent = job.scenario.clone();
             let res = run_episode_collect(
                 &job.episode_id,
                 &job.scenario,
                 &model,
-                &agent,
+                move |rec| {
+                    JanusTargetAgent::new(client, Arc::new(PromptManager::new(spec_for_agent)))
+                        .with_protocol(protocol)
+                        .with_recorder(rec)
+                },
                 inner,
                 job.strictness,
             )
@@ -750,6 +771,14 @@ async fn run_batch(
                         metrics: Some(metrics.clone()),
                         labels,
                         events_public: events_public.clone(),
+                        events_full: events.clone(),
+                        scenario,
+                        model_config: &ModelConfig {
+                            provider: provider.clone(),
+                            model: model_id.clone(),
+                            temperature: 0.0,
+                            seed: Some(seed),
+                        },
                         sandbox: sandbox_backend.to_string(),
                         judge: judge_id.to_string(),
                     };

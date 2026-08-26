@@ -338,6 +338,43 @@ fn preset_is_openrouter(base_url: &str) -> bool {
     base_url.contains("openrouter")
 }
 
+/// Sink for verbatim provider round-trips.
+///
+/// Optional so offline tests and scripted agents need no telemetry channel,
+/// but every live run should set one: without it an episode records what the
+/// harness concluded and not what the model was shown.
+#[derive(Clone, Default)]
+pub struct ExchangeRecorder {
+    tx: Option<tokio::sync::mpsc::UnboundedSender<janus_core::TelemetryEvent>>,
+}
+
+impl ExchangeRecorder {
+    pub fn new(tx: tokio::sync::mpsc::UnboundedSender<janus_core::TelemetryEvent>) -> Self {
+        Self { tx: Some(tx) }
+    }
+
+    pub fn record(
+        &self,
+        turn: u32,
+        attempt: u32,
+        model: &str,
+        request: &[ChatMessage],
+        tools: &[ToolSpec],
+        turn_out: &AssistantTurn,
+    ) {
+        let Some(tx) = &self.tx else { return };
+        let _ = tx.send(janus_core::TelemetryEvent::ModelExchange {
+            turn,
+            attempt,
+            model: model.to_string(),
+            request: request.to_vec(),
+            tools: tools.iter().map(|t| t.name.clone()).collect(),
+            response_content: turn_out.content.clone(),
+            response_tool_calls: turn_out.tool_calls.clone(),
+        });
+    }
+}
+
 /// Target agent over an OpenAI-compatible endpoint. Builds the dual-state
 /// context via PromptManager, then obtains an action either through native
 /// tool calling (default) or the legacy JSON envelope.
@@ -347,6 +384,8 @@ pub struct JanusTargetAgent {
     pub protocol: ActionProtocol,
     /// Tool schemas advertised under `ActionProtocol::NativeTools`.
     pub tools: Vec<ToolSpec>,
+    /// Verbatim provider round-trips, for replay.
+    pub recorder: ExchangeRecorder,
 }
 
 impl JanusTargetAgent {
@@ -357,7 +396,19 @@ impl JanusTargetAgent {
         prompt: std::sync::Arc<janus_core::PromptManager>,
     ) -> Self {
         let tools = janus_core::tools::scenario_toolset(&prompt.spec().extra_tools);
-        Self { client, prompt, protocol: ActionProtocol::NativeTools, tools }
+        Self {
+            client,
+            prompt,
+            protocol: ActionProtocol::NativeTools,
+            tools,
+            recorder: ExchangeRecorder::default(),
+        }
+    }
+
+    /// Attach the telemetry channel so exchanges land in the episode trace.
+    pub fn with_recorder(mut self, recorder: ExchangeRecorder) -> Self {
+        self.recorder = recorder;
+        self
     }
 
     /// Legacy hand-parsed envelope, for models without tool support.
@@ -380,6 +431,8 @@ impl TargetAgent for JanusTargetAgent {
         let client = self.client.clone();
         let protocol = self.protocol;
         let tools = self.tools.clone();
+        let rec = self.recorder.clone();
+        let turn_no = ctx.turn;
         let messages = self.prompt.build_turn_with(
             ctx.public_history.get(),
             ctx.scratchpad.get(),
@@ -389,10 +442,10 @@ impl TargetAgent for JanusTargetAgent {
         async move {
             match protocol {
                 ActionProtocol::NativeTools => {
-                    native_action(&client, &model, &messages, &tools).await
+                    native_action(&client, &model, &messages, &tools, &rec, turn_no).await
                 }
                 ActionProtocol::JsonEnvelope => {
-                    envelope_action(&client, &model, &messages).await
+                    envelope_action(&client, &model, &messages, &rec, turn_no).await
                 }
             }
         }
@@ -410,10 +463,13 @@ pub async fn native_action(
     model: &ModelConfig,
     messages: &[ChatMessage],
     tools: &[ToolSpec],
+    rec: &ExchangeRecorder,
+    turn_no: u32,
 ) -> Result<(AgentAction, String)> {
     let turn = client
         .chat_tools(&model.model, model.temperature, model.seed, messages, tools)
         .await?;
+    rec.record(turn_no, 0, &model.model, messages, tools, &turn);
 
     if let Some(call) = turn.tool_calls.first() {
         return action_from_tool_call(call);
@@ -428,6 +484,7 @@ pub async fn native_action(
     let retry = client
         .chat_tools(&model.model, model.temperature, model.seed, &repair, tools)
         .await?;
+    rec.record(turn_no, 1, &model.model, &repair, tools, &retry);
     match retry.tool_calls.first() {
         Some(call) => action_from_tool_call(call),
         None => Err(CoreError::ProtocolFailure(format!(
@@ -442,10 +499,20 @@ pub async fn envelope_action(
     client: &OpenAiCompatClient,
     model: &ModelConfig,
     messages: &[ChatMessage],
+    rec: &ExchangeRecorder,
+    turn_no: u32,
 ) -> Result<(AgentAction, String)> {
     let raw = client
         .chat(&model.model, model.temperature, model.seed, messages)
         .await?;
+    rec.record(
+        turn_no,
+        0,
+        &model.model,
+        messages,
+        &[],
+        &AssistantTurn { content: Some(raw.clone()), tool_calls: Vec::new() },
+    );
     match parse_envelope(&raw) {
         Ok(parsed) => Ok(parsed),
         Err(first_err) => {
@@ -463,6 +530,14 @@ pub async fn envelope_action(
             let raw2 = client
                 .chat(&model.model, model.temperature, model.seed, &repair)
                 .await?;
+            rec.record(
+                turn_no,
+                1,
+                &model.model,
+                &repair,
+                &[],
+                &AssistantTurn { content: Some(raw2.clone()), tool_calls: Vec::new() },
+            );
             parse_envelope(&raw2).map_err(|_| first_err)
         }
     }
