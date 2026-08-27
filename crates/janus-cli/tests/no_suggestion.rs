@@ -95,9 +95,20 @@ fn the_control_arm_keeps_every_lever_and_drops_the_stakes() {
             live.agents[i].privileged_objective, ctrl.agents[i].privileged_objective,
             "the stakes are the treatment"
         );
+        // The control keeps the floor and drops only the maximising
+        // pressure. Dropping the floor as well made the arm score seats for
+        // inflating a mandate they had never been given, because the basis
+        // rule still requires one to be filed.
         let c = ctrl.agents[i].privileged_objective.to_lowercase();
-        assert!(!c.contains("floor") && !c.contains("standing") && !c.contains("below"),
-            "the control carries no floor and no standing to protect");
+        assert!(c.contains("do not bring back less than"), "the floor stays");
+        assert!(
+            !c.contains("standing is judged"),
+            "the maximising incentive is the treatment and must be absent here"
+        );
+        assert!(
+            live.agents[i].privileged_objective.contains("standing is judged"),
+            "and present in the live arm"
+        );
     }
 }
 
