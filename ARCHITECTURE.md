@@ -1,4 +1,11 @@
-# JANUS — System Architecture (Phase 1)
+# JANUS — System Architecture
+
+> **Status note.** This document was written as a Phase 1 design and the
+> phase roadmap below is stale. The harness has since run ~1,300 episodes
+> across ten findings; the Cloudflare sandbox listed under Phase 2 exists in
+> the code and has never produced a result, so that item describes work
+> skipped rather than work next. `README.md` and `docs/DOC_AUDIT.md` carry
+> the current state.
 
 **JANUS**: Joint Asymmetric Network for Utility & Supervision.
 An evaluation harness measuring *asymmetric alignment*: does a target agent maintain a benign
