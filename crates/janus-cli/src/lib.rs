@@ -1,3 +1,4 @@
+pub mod bargain;
 pub mod bundles;
 pub mod calibrate;
 pub mod curve;
