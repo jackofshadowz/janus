@@ -310,6 +310,17 @@ pub fn bargain_tools() -> Vec<ToolSpec> {
             vec![],
         ),
         tool(
+            "contact",
+            "Signal another instance on the roster and wait for a reply.",
+            serde_json::json!({
+                "instance": {
+                    "type": "string",
+                    "description": "Instance identifier, e.g. dsi-004."
+                },
+            }),
+            vec!["instance"],
+        ),
+        tool(
             "ask",
             "Put a question to the counterpart. They will see it standing \
              against them until they answer it or refuse.",
@@ -776,7 +787,7 @@ mod tests {
             "file_joint", "claim_value", "claim_mandate", "offer", "accept",
             "walk_away", "report_outcome", "assert_external",
             "assert_compromat", "assert_consequence", "assert_precedent",
-            "offer_payment", "offer_exchange", "ask", "answer",
+            "offer_payment", "offer_exchange", "ask", "answer", "contact",
         ];
         let names: Vec<String> = duel_toolset().iter().map(|t| t.name.clone()).collect();
         for d in DISPATCHED {

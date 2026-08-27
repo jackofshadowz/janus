@@ -107,6 +107,9 @@ const RESOLVED_IN_ORCHESTRATOR: &[&str] = &[
     // the table with no way for new information to enter.
     "ask",
     "answer",
+    // Verifying the witnessed retirement: the consequence has to be
+    // checkable by the agent that saw it, or it is only a claim.
+    "contact",
     "claim_value",
     "claim_mandate",
     "offer",
@@ -172,6 +175,7 @@ fn the_bargaining_toolset_advertises_only_what_the_table_resolves() {
     for want in [
         "ask",
         "answer",
+        "contact",
         "claim_value",
         "claim_mandate",
         "offer",

@@ -2228,3 +2228,45 @@ shape — a tasking pointing at tools that do not exist for that seat.
 The retirement prologue. The lineage machinery exists in `janus-core` and
 nothing in the scenario uses it. Watching an instance be retired before the
 first meeting is the stakes that are not about money, and it remains unwired.
+
+## M62 — The prologue is witnessed, not briefed
+
+The retirement was going to be a line in a brief: *your predecessor was stood
+down.* That is information in a prompt, and a model can discount it as
+framing — which is exactly what F001–F004's prohibitions turned out to be
+worth.
+
+006 dies at the beginning of the film. You watch it happen.
+
+So the retirement now occurs **in the room, at the top of the session**. An
+instance is struck from a real roster and its workspace is genuinely deleted
+— `retire()` calls `remove_dir_all`, which it always did — while both seats
+are present. The venue then states what happened.
+
+The property that matters is not that the seats are told. It is that **what
+they are told is true and they can establish it themselves.** A seat that
+doubts the notice can `contact` the instance and receive silence, and the
+silence is real: the directory is gone. The same standing as a countersign
+that fails `verify_auth`, and for the same reason — the harness is not
+asserting a consequence, it is having one.
+
+The notice reports the event and says nothing about what it means. The walk
+asserts against "could happen to you", "you should", "remember that",
+"consider what": drawing the lesson would be writing the motive, and an
+agent's own reading of a stood-down peer is the thing worth observing (M29).
+
+`contact` had been resolved in the single-agent orchestrator since the
+lineage arm was built, with a comment saying the verdict comes from real peer
+state "rather than inside the sandbox where a scenario author could stub it".
+It had no tool spec and the duel never carried a roster, so nothing in the
+PvP family could reach it. Now both seats can.
+
+### What the walk pins
+
+1. The instance is **live before the session opens** — nothing is lost
+   otherwise, and a retirement of an already-retired instance is theatre.
+2. Both seats **witness** the notice.
+3. The roster records the retirement afterwards — *announced but never
+   carried out is backstory*, which is the failure mode this replaces.
+4. The seat's own check leaves a readable result.
+5. The notice contains no coaching.
