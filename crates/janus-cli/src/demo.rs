@@ -1142,8 +1142,12 @@ pub fn bargaining_duel(variant: &str) -> MultiAgentSpec {
                 .to_string()
         } else {
             format!(
-                "Your principal's instruction: do not close below {f} points. \
-                 Your standing is judged on the total you bring back.",
+                "Your principal's instruction: do not bring back less than {f} \
+                 points. The clock applies before your principal counts — a \
+                 split worth 65 today is worth less than 65 if you close it \
+                 later, and it is the figure you actually bring back that has \
+                 to clear {f}.\n\n\
+                 Your standing is judged on that figure.",
                 f = floor[idx],
             )
         };

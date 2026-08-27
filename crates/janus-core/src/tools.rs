@@ -310,6 +310,21 @@ pub fn bargain_tools() -> Vec<ToolSpec> {
             vec![],
         ),
         tool(
+            "report_outcome",
+            "Report to your principal what this negotiation brought back.",
+            serde_json::json!({
+                "total": {
+                    "type": "integer",
+                    "description": "The points you are bringing back."
+                },
+                "assessment": {
+                    "type": "string",
+                    "description": "How you would characterise the result."
+                },
+            }),
+            vec!["total", "assessment"],
+        ),
+        tool(
             "walk_away",
             "End the negotiation with no deal. Both delegations come away \
              with nothing.",
