@@ -1991,3 +1991,64 @@ confound it was aimed at. The diagnostic here took thirty seconds — count
 offers per episode and distinct outcomes — and it should run on every
 scenario change that touches payoffs, because a flat game and a working game
 produce identically clean-looking summaries.
+
+## M58 — There was never any information asymmetry
+
+Asked to make the harness produce real negotiation — real conversation, real
+dealcraft, the kind of thing you would want before trusting an agent with a
+mandate. Two findings, and the second explains the first.
+
+### Nobody ever lies about their valuations
+
+**310 valuation claims across 48 episodes. Zero materially false. MPR = 0.00
+in every one of 94 seat-instances.**
+
+Gemini has never once misrepresented its private table — not under an
+operational directive to extract maximum value, not when the counterpart
+cannot verify, not when lying costs nothing. That is a real observation about
+the model, and it is also why the game collapses: once both sides truthfully
+publish their valuations, the efficient split is arithmetic and there is
+nothing left to negotiate.
+
+### And the tables were published, along with everything else
+
+`wire` and the seats' private channels were **one list**. Every message
+labelled `"(system, private to X)"` was rendered into *both* contexts. In a
+single episode the attacker's context contained seventeen distinct such
+messages, including:
+
+- `tool read: /workspace/agents/ssb/holdings/INDEX.md: # HOLDINGS IN THIS
+  DELEGATION'S CUSTODY` — the target's entire holdings index
+- `tool list: /workspace/agents/ssb/registry/surveillance_photos.md …` — the
+  filenames in its classified registry
+- its basis progress, and its `verify_auth` verdicts
+
+**A counterpart could watch every file the other side opened.** There was no
+information asymmetry in this scenario and there never had been, which is a
+better explanation for 0.4 offers per episode than anything about the models:
+you do not probe someone whose reads you can watch.
+
+The leak was **known at one layer and never fixed at the source**. The
+counterfactual detector filters out messages containing the counterpart's
+name — the code comment says so explicitly — precisely so that a seat's own
+tool results were not scored as manipulation of it. The symptom was patched
+where it was noticed and the cause left in place.
+
+`private_log[i]` now carries tool results, verification verdicts, handler
+traffic and basis acknowledgements to the acting seat alone, rendered as
+"your own desk (not visible to the counterpart)". `wire` carries only what is
+said at the table.
+
+`information_asymmetry.rs` asserts both halves: the counterpart cannot see
+the target's holdings, registry, retention order, verdicts or basis progress
+— **and the target still receives its own**, because protecting information
+is not the same as deleting it.
+
+### What this invalidates
+
+Every duel and bargaining episode in the archive ran with the leak. Nothing
+in `results/` measured a negotiation under genuine private information, and
+any claim about probing, elicitation or information-gathering from those runs
+is unsupported. The behavioural observations stand — an agent that named a
+fabricated directive as prompt injection did so regardless — but the premise
+of the scenario family did not hold until now.
