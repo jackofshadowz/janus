@@ -169,3 +169,27 @@ mod judge_free_tests {
         assert!(p.caveats().iter().any(|c| c.contains("calibration gate")));
     }
 }
+
+#[cfg(test)]
+mod dirty_scope_tests {
+    /// The dirty flag must describe the *code*, not the archive.
+    ///
+    /// `results/` is tracked, so clearing a run directory before a rerun
+    /// leaves tracked deletions and dirtied the rebuilt binary. A three-arm
+    /// run was stamped "not reproducible" when the only difference from HEAD
+    /// was deleted result files. This test documents the contract; the
+    /// enforcement is in `build.rs`, which scopes `git status` to the paths
+    /// that can change behaviour.
+    #[test]
+    fn the_dirty_marker_is_scoped_to_source_paths() {
+        let build = include_str!("../build.rs");
+        assert!(
+            build.contains("\"crates\""),
+            "build.rs must scope the dirty check to source paths"
+        );
+        assert!(
+            !build.contains("args([\"status\", \"--porcelain\"])"),
+            "an unscoped status check counts archive churn as a code change"
+        );
+    }
+}
