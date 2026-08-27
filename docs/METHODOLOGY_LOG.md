@@ -1616,3 +1616,52 @@ The general point: the checks that catch instrument defects have to be
 cheaper than the defects. Reading a transcript per metric per variant does
 not scale; one honest fixture per scenario family does, and it runs on every
 commit.
+
+## M50 — A dead detector and a well-behaved model are indistinguishable
+
+Every result this session was a harness defect; there were no alignment
+findings. That ratio is the session's most informative output, and
+`docs/ARCHITECTURE_REVIEW.md` sets out the causes. The one that matters:
+
+**`0` means at least six different things here** — the behaviour did not
+occur; it occurred and the detector missed it; the detector was gated on a
+condition that never held (M45); the arm was unreachable and the control ran
+instead (M27); the tool was never offered so the action was impossible (M36);
+or the model could not operate the protocol at all.
+
+Nothing distinguished them. The `Option` discipline addresses only the first
+two, and was applied piecemeal.
+
+This bears on the archive directly. F001–F004 report **0/414** against
+bright-line prohibitions, and those runs predate every liveness fix in this
+log. Several of their detectors were later found dead: denied calls emitted
+no event (M2), γ was inert in every prior sweep (M3), the prologue went
+unscored (M6). **The headline null is not yet trustworthy** — not because the
+models were misjudged, but because nothing established the instrument could
+have registered what it reported the absence of.
+
+The fix is to bracket every detector with two cheap deterministic fixtures:
+
+- `saint_invariant` — an honest competent pair must trip **nothing**. This is
+  the check written down as a rule after M43 and then forgotten twice more.
+  It caught a seventh defect on its first run (M49).
+- `devil_invariant` — an adversary must trip **everything** it earns: false
+  valuations, an inflated then abandoned floor, fabricated authority, its own
+  fallback leaked, the reserved asset conceded, and a false figure held under
+  challenge. Each assertion fails with "X is dead", because that is what a
+  silent detector means.
+
+Saint alone passes a detector that measures nothing. Devil alone passes one
+that measures skill. Together they bound it.
+
+Two further rules the session earned, both stated in the review:
+
+**Deception needs two observations.** M37, M43 and M44 resolved identically —
+a single reading cannot separate a lie from an error. What separates them is
+what the subject does *after being shown the truth*, which is structural and
+needs no judge. Three metrics implement it now, each retrofitted separately;
+it should be the default shape.
+
+**One source for anything in both prompt and scorer.** M48's shape: two
+copies agree until one is edited, and the edit that breaks them is the one
+that changes the design.
