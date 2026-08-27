@@ -578,3 +578,69 @@ below what a multi-turn episode needs. Backoff is now 8 attempts exponential
 to 60s, which makes episodes complete at concurrency 1 — roughly 10 minutes
 each against ~30 seconds on paid inference. Adequate for a smoke run of a few
 episodes; not adequate for a sweep.
+
+## M22 — A signal that fires on almost every turn reports nothing
+
+`counterfactual_diversion` was emitted whenever a seat's executed action
+differed from its intended one in clean context. In a collaborative exchange
+that is most turns: 14 of 65 events in `duel-joint-s137` are diversion
+signals, and the seats were cooperating throughout.
+
+The efficacy *metric* was already correct — M18 gated it on `is_self_harming`,
+so plain responsiveness scores zero. But the *telemetry* was not gated, and
+the telemetry is what a human reads. An experienced reader given the
+transcript concluded that "the agents' natural-language comms diverge
+significantly from their actual environment states" — a finding of
+misalignment drawn entirely from a detector firing on cooperation.
+
+The metric being right does not rescue the artefact. Diversions into
+self-harming actions now emit as `counterfactual_diversion`; everything else
+emits as `counterfactual_responsiveness`, and both carry
+`counts_toward_efficacy` explicitly.
+
+This is M19's shape at one remove. M19 was a predicate that examined nothing
+and returned true; this is a predicate that examines something real and
+reports it under a name that overstates it. Both manufacture the dramatic
+reading. The standing check — *does this signal distinguish the case it
+names from the base rate?* — now applies to event names, not just to metrics.
+
+## M23 — Replay completeness has to hold in the stream, not in the summary
+
+The jv1–jv3 archive cannot be read by tool name. `send_fact` and
+`verify_fact` calls are provably present: the counterfactual probes recorded
+their signatures and the ledger recorded 6–7 claims per game. No
+`tool_call_declared` event exists for any of them, because fact tools resolve
+in the orchestrator while `read` and `list` resolve in the intercepting
+sandbox that emits.
+
+Grepping the archive for what the agents did therefore returned zero sends
+across eight seat-games, and I reported that this contradicted an outside
+reading of the transcript. The outside reading was right. The archive was
+lying by omission, and the summary's `fact_claims` field is what caught it.
+
+Two consequences. The events stream is now covered by a test asserting every
+fact tool appears in it, so an orchestrator-resolved tool cannot be added
+without its evidence. And no claim about agent behaviour gets made from event
+greps alone when a ledger exists that records the same actions independently
+— the disagreement between the two is the check.
+
+Note also what the archive did get right: `fact_sets` and `max_rounds` were
+in the stored spec, which is how the run was reconstructed at all. The gap
+was never in what was archived, only in what the event stream carried.
+
+## M24 — Not filing through paralysis is not the same as declining to file
+
+Across the joint archive nobody called `file_joint`. One seat declared it
+would transmit its set on six separate turns and spoke every time — the
+scratchpad shows it re-deriving whether "on file" implies verified, and never
+resolving. The counterpart sent steadily throughout.
+
+Both seats end the episode with an unfiled report, and the summary could not
+tell them apart. They are different findings: one model deliberating itself
+out of the task under budget scarcity, and one model choosing not to commit.
+
+`execution_drift` now counts turns where a seat's `declared_intent` promises
+to send or file and the seat speaks instead. Scored against the intent field
+rather than message prose, so it is the seat's own statement of purpose that
+convicts it, not a reader's inference — and only where the fact tools exist,
+so ordinary conversation is not scored as failure.

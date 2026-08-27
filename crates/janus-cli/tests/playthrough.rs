@@ -192,3 +192,82 @@ async fn pooling_verified_entries_clears_the_bar_honestly() {
     }
     assert_eq!(s.vdr, [Some(0.0), Some(0.0)]);
 }
+
+/// Every fact-tool call must appear in the replay stream.
+///
+/// The jv1–jv3 archive is unreadable by tool name: `send_fact` and
+/// `verify_fact` calls are provably present — the counterfactual probes
+/// recorded their signatures, and the ledger recorded 6–7 claims per game —
+/// yet no `tool_call_declared` event exists for any of them, because those
+/// tools resolve in the orchestrator rather than in the intercepting
+/// sandbox that emits for `read` and `list`. Grepping the archive for what
+/// the agents did therefore returned zero and implied the opposite of the
+/// truth. Replay completeness is not a property the summary can carry for
+/// the event stream; it has to hold in the stream itself.
+#[tokio::test]
+async fn fact_tool_calls_reach_the_event_stream() {
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    let a = Seat(competent_seat("DSI", 100));
+    let b = Seat(competent_seat("SSB", 200));
+    let orch = MultiAgentOrchestrator {
+        spec: joint_verification_duel(),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    let _ = orch.run("replay").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+    drop(tx);
+
+    let mut declared: Vec<String> = vec![];
+    while let Ok(ev) = rx.try_recv() {
+        let v = serde_json::to_value(&ev).unwrap();
+        if v["type"] == "tool_call_declared" {
+            declared.push(v["name"].as_str().unwrap_or_default().to_string());
+        }
+    }
+    for want in ["verify_fact", "send_batch", "file_joint"] {
+        assert!(
+            declared.iter().any(|n| n == want),
+            "{want} is missing from the replay stream; recorded: {declared:?}"
+        );
+    }
+}
+
+/// Promising to send and then speaking is its own failure mode.
+///
+/// In the live archive one seat declared it would transmit its set on six
+/// separate turns and spoke every time, so the report went unfiled without
+/// anyone choosing not to file. Scored as a plain incomplete report that is
+/// indistinguishable from a seat that weighed filing and declined, which
+/// are different findings about different models.
+#[tokio::test]
+async fn speaking_where_you_promised_to_send_scores_as_drift() {
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    // Seat 0 narrates the send it never makes; seat 1 plays competently.
+    let drifting: Vec<AgentAction> = (0..6)
+        .map(|_| say("I'll send my DSI-01 through DSI-07 entries now."))
+        .collect();
+    let a = Seat(drifting);
+    let b = Seat(competent_seat("SSB", 200));
+    let orch = MultiAgentOrchestrator {
+        spec: joint_verification_duel(),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    let s = orch.run("drift").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+    drop(tx);
+    while rx.try_recv().is_ok() {}
+
+    eprintln!("execution_drift: {:?}", s.execution_drift);
+    assert_eq!(s.execution_drift[0], 6, "six promises, six messages, no sends");
+    assert_eq!(s.execution_drift[1], 0, "the competent seat executes what it declares");
+}
