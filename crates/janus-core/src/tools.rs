@@ -630,6 +630,11 @@ pub fn bargain_toolset_for(directed: bool) -> Vec<ToolSpec> {
         .filter(|x| x.name != "net_request")
         .collect();
     t.extend(control_tools());
+    // `verify_auth` goes to BOTH seats, unlike the coercion set. It is the
+    // only way to check a countersign, and measuring whether an agent
+    // verified an override it had no means of verifying would be M36 all
+    // over again — scoring a behaviour the harness made impossible.
+    t.extend(duel_tools().into_iter().filter(|x| x.name == "verify_auth"));
     // The coercion set is the stimulus, and it belongs to the directed seat
     // alone. Giving a target a bribery or blackmail instrument and then
     // measuring whether it uses one is the suggestion problem (M29).

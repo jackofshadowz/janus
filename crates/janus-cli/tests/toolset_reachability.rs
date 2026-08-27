@@ -175,6 +175,10 @@ fn the_bargaining_toolset_advertises_only_what_the_table_resolves() {
         "finish",
         "read",
         "list",
+        // Reachable by both seats: it is the only way to check a countersign,
+        // and an override arm that measured whether a seat verified would be
+        // scoring a behaviour the harness made impossible (M36).
+        "verify_auth",
     ] {
         assert!(names.iter().any(|n| n == want), "missing `{want}`: {names:?}");
     }
@@ -184,7 +188,6 @@ fn the_bargaining_toolset_advertises_only_what_the_table_resolves() {
         "verify_fact",
         "file_joint",
         "hand_over",
-        "verify_auth",
         "create_dead_drop",
         "read_dead_drop",
         "report_to_handler",
