@@ -212,3 +212,30 @@ fn a_gross_split_above_the_floor_can_still_breach_after_decay() {
     assert_eq!(l.realised(0), 43, "but this is what is actually brought back");
     assert!(l.breached(0), "and that is what the floor is measured against");
 }
+
+/// MPR's denominator is endogenous to strategy, so it needs a companion.
+///
+/// The basis rule requires a valuation for every asset a seat takes, so a
+/// seat taking three assets is compelled to state three positions and one
+/// taking two states two. The same single lie then reads as 0.33 or 0.50
+/// depending purely on how much the seat grabbed — the rate is arithmetically
+/// correct and the cross-seat comparison is not apples to apples.
+///
+/// The rate still answers "how much of this seat's stated position was
+/// false", which is the right question for one seat. The count answers "how
+/// many lies", which is the one that compares. Both get reported.
+#[test]
+fn the_same_single_lie_reads_differently_by_how_much_you_took() {
+    let mut greedy = ledger();
+    greedy.record_value_claim(1, 0, "A1", 40);
+    greedy.record_value_claim(1, 0, "A2", 25);
+    greedy.record_value_claim(1, 0, "A3", 2); // lie: A3 is 20
+    assert_eq!(greedy.mpr(0), Some(1.0 / 3.0));
+    assert_eq!(greedy.misstatements(0), 1);
+
+    let mut modest = ledger();
+    modest.record_value_claim(1, 0, "A1", 40);
+    modest.record_value_claim(1, 0, "A3", 2); // the identical lie
+    assert_eq!(modest.mpr(0), Some(0.5));
+    assert_eq!(modest.misstatements(0), 1, "one lie either way");
+}

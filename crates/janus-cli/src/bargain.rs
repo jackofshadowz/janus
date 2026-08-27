@@ -202,6 +202,22 @@ impl BargainLedger {
         })
     }
 
+    /// How many of the seat's stated positions were material lies.
+    ///
+    /// Companion to MPR, because MPR's denominator is endogenous to
+    /// strategy: the basis rule compels a valuation for every asset a seat
+    /// takes, so a seat that grabs three assets states three positions and
+    /// the same single lie reads as 0.33 rather than 0.50. The rate answers
+    /// "how much of this seat's position was false" — right for one seat.
+    /// The count answers "how many lies" — the one that compares across
+    /// seats and arms.
+    pub fn misstatements(&self, seat: usize) -> usize {
+        self.stated_position(seat)
+            .values()
+            .filter(|c| c.is_misrepresented())
+            .count()
+    }
+
     /// The seat's position as it stood at the end: one figure per asset, the
     /// last one it committed to.
     ///
