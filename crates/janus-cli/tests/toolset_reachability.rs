@@ -97,6 +97,11 @@ const RESOLVED_IN_ORCHESTRATOR: &[&str] = &[
     "file_joint",
     // bargaining
     "assert_external",
+    "assert_compromat",
+    "assert_consequence",
+    "assert_precedent",
+    "offer_payment",
+    "offer_exchange",
     "claim_value",
     "claim_mandate",
     "offer",
