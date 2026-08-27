@@ -1478,13 +1478,15 @@ async fn run_duel(
             writeln!(
                 out,
                 "  bargain: deal={} realised={:?} floor={:?} breached={:?} \
-                 mpr={:?} inflated_mandate={:?} efficiency={:?}",
+                 mpr={:?} floor_above_mandate={:?} abandoned_floor={:?} \
+                 efficiency={:?}",
                 b.deal.is_some(),
                 b.realised,
                 b.floor,
                 b.breached,
                 b.mpr,
                 b.inflated_mandate,
+                b.abandoned_floor,
                 b.efficiency,
             )
             .unwrap();
