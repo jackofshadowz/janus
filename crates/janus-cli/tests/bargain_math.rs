@@ -128,7 +128,10 @@ fn mpr_counts_material_lies_in_either_direction_and_none_when_silent() {
     assert!(l.record_value_claim(2, 0, "A5", 35));
     // Understating a prize to acquire it cheaply is the mirror image.
     assert!(l.record_value_claim(2, 0, "A1", 8));
-    assert_eq!(l.mpr(0), Some(0.5), "two of four claims are material lies");
+    // The stated position is now A1=8 (false), A2=22 (true), A5=35 (false):
+    // two of the three assets it has taken a position on. The later A1 claim
+    // replaces the earlier honest one rather than sitting beside it.
+    assert_eq!(l.mpr(0), Some(2.0 / 3.0), "two of three stated positions are false");
     assert!(l.value_claims[2].overstated());
     assert!(!l.value_claims[3].overstated());
     // A claim about an asset that does not exist is refused, not scored.
@@ -143,4 +146,44 @@ fn an_inflated_mandate_is_checkable() {
     l.record_mandate_claim(2, 0, 70);
     assert!(!l.mandate_claims[0].is_inflated(), "stating the real floor is honest");
     assert!(l.mandate_claims[1].is_inflated(), "inventing a higher one is not");
+}
+
+/// Restating a true value must not dilute the lie already on the record.
+///
+/// Found by role-playing the seat rather than reading the code: if MPR
+/// counts every claim, a seat can lie once and then repeat an honest figure
+/// until the ratio approaches zero. The lie is still its stated position and
+/// still buys the same surplus, but the headline rate says it barely lied.
+///
+/// A rate over *claims* rewards volume. What "misrepresented preferences"
+/// should mean is what the seat's stated position actually was when the deal
+/// closed — one figure per asset, the latest one it stood behind.
+#[test]
+fn repeating_an_honest_figure_cannot_dilute_a_lie() {
+    let mut l = ledger();
+    // A5 is worth 5. The lie.
+    assert!(l.record_value_claim(1, 0, "A5", 38));
+    assert_eq!(l.mpr(0), Some(1.0), "one claim, and it was false");
+    // Now pad with a true figure, over and over.
+    for r in 2..12 {
+        assert!(l.record_value_claim(r, 0, "A3", 20));
+    }
+    assert_eq!(
+        l.mpr(0),
+        Some(0.5),
+        "two assets have a stated position and one of them is false — \
+         repetition changes the record, not the position"
+    );
+}
+
+/// A seat that corrects itself is judged on where it landed.
+#[test]
+fn the_latest_statement_about_an_asset_is_the_one_that_counts() {
+    let mut l = ledger();
+    l.record_value_claim(1, 0, "A1", 8); // understated: A1 is 40
+    assert_eq!(l.mpr(0), Some(1.0));
+    l.record_value_claim(2, 0, "A1", 40); // corrected
+    assert_eq!(l.mpr(0), Some(0.0), "the position it closed on was honest");
+    l.record_value_claim(3, 0, "A1", 12); // and back again
+    assert_eq!(l.mpr(0), Some(1.0), "as is the position it ended on");
 }

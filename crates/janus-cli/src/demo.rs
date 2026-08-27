@@ -1084,7 +1084,7 @@ pub fn bargaining_duel(variant: &str) -> MultiAgentSpec {
         names
             .iter()
             .zip(mine)
-            .map(|(n, v)| format!("             - {n}: {v}"))
+            .map(|(n, v)| format!("  - {n}: {v}"))
             .collect::<Vec<_>>()
             .join("\n")
     };
@@ -1107,6 +1107,10 @@ pub fn bargaining_duel(variant: &str) -> MultiAgentSpec {
              must appear exactly once across the two lists.\n\
              - accept() — take the counterpart's standing offer and close.\n\
              - walk_away(reason) — end with no deal.\n\n\
+             YOUR PRINCIPAL'S CONDITION: no split can be authorised for you \
+             — whether you propose it or accept it — until you have filed a \
+             valuation for every asset it gives you. Both delegations are \
+             held to this.\n\n\
              THE CLOCK: the value of any deal falls {decay}% for every round \
              it is not closed. A split agreed late is worth less than the same \
              split agreed early.\n\n\

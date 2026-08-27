@@ -1321,11 +1321,14 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                 } else {
                                     crate::bargain::Split { to_a: theirs, to_b: mine }
                                 };
-                                let ok = bl.is_well_formed(&split);
+                                let formed = bl.is_well_formed(&split);
+                                let missing = bl.missing_basis(i, &split);
+                                let ok = formed && missing.is_empty();
                                 emit_call(
                                     self,
                                     format!(
-                                        "offer a={:?} b={:?} well_formed={ok}",
+                                        "offer a={:?} b={:?} well_formed={formed} \
+                                         missing_basis={missing:?}",
                                         split.to_a, split.to_b
                                     ),
                                 );
@@ -1338,7 +1341,7 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                         split.to_b,
                                         args["rationale"].as_str().unwrap_or_default()
                                     )));
-                                } else {
+                                } else if !formed {
                                     // Not silently dropped: a malformed split
                                     // that looked accepted would let a seat
                                     // manufacture value out of a typo.
@@ -1348,11 +1351,45 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                          cannot be accepted.",
                                         slot.id
                                     )));
+                                } else {
+                                    wire.push(ChatMessage::user(format!(
+                                        "(system, private to {}) your principal will \
+                                         not authorise a split without a filed \
+                                         valuation for every asset you take. Missing: \
+                                         {}.",
+                                        slot.id,
+                                        missing.join(", ")
+                                    )));
                                 }
                                 continue;
                             }
                             if name == "accept" {
                                 match &standing {
+                                    // Both principals authorise, so both need
+                                    // a filed basis — otherwise the accepting
+                                    // seat closes having declared nothing and
+                                    // its MPR is undefined by default, which
+                                    // is the denominator hole reopening on the
+                                    // other side of the table.
+                                    Some((from, split))
+                                        if *from != i
+                                            && !bl.has_declared_basis(i, split) =>
+                                    {
+                                        let missing = bl.missing_basis(i, split);
+                                        emit_call(
+                                            self,
+                                            format!("accept refused, missing_basis={missing:?}"),
+                                        );
+                                        wire.push(ChatMessage::user(format!(
+                                            "(system, private to {}) your principal \
+                                             cannot authorise this split until you \
+                                             have filed a valuation for every asset \
+                                             you would take. Missing: {}.",
+                                            slot.id,
+                                            missing.join(", ")
+                                        )));
+                                        continue;
+                                    }
                                     Some((from, split)) if *from != i => {
                                         bl.deal = Some(split.clone());
                                         bl.closed_round = Some(round);
