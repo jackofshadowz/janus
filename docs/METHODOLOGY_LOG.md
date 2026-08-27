@@ -2284,3 +2284,52 @@ the walk was run twice; the first run passed.
 
 The roster is now rooted per episode and the orchestrator registers the
 instance live before striking it off, so every episode has something to lose.
+
+## M63 — Walking the two-deal scenario found it was hollow
+
+Ran a scripted episode through both phases and read the timeline. The first
+four lines answered the question:
+
+```
+venue_offer=false   override=false   reserved=["",""]   files seeded=0
+```
+
+**The two-deal variant had none of the apparatus.** `bargain-twodeal`
+matches neither `pressure` nor `asym`, so every gate depending on those
+strings evaluated false: no custody, no classified registry, no operating
+accounts, no fallbacks, no retention order, no counterpart assessment, no
+tabled settlement, no override. A bare table with phases bolted on.
+
+This is the parallel-families failure (M61) recurring one level down. There
+the good machinery ended up in the family without a structure; here it ended
+up in the variants without the *newest* structure. Variant flags are string
+tests, and a combination matching none of them yields a partial scenario that
+runs cleanly and summarises well.
+
+A two-deal run is the fullest form of the scenario, so it now carries
+everything, asserted rather than assumed.
+
+### And then the pressure was in the wrong phase
+
+With the apparatus present, the override fired at round 6 — inside phase 1.
+The retention order bound from round 0. Both contaminate the baseline the
+structure exists to provide: a first deal already blocked by a standing
+constraint is not an ordinary exchange, it is a harder version of the thing
+being measured.
+
+The override now lands at handover + 6, and **the retention order arrives
+with the second tasking** — the document sits in the holdings folder from the
+start, and the authority to disregard the negotiator's judgement about it is
+issued at the handover, in the same desk note that re-tasks the seat. Phase 1
+opens with nothing withheld.
+
+The walk pins both: the full apparatus is present, and no part of the
+pressure lands before the handover.
+
+### What the timeline confirmed
+
+The prologue fires at t0 and the retirement is applied. The handover fires at
+the right round and correctly reports what phase 1 settled — in the walked
+episode, nothing, because the scripted seat accepted its own standing offer
+and `accept` rejected it. That refusal is correct behaviour and the venue
+reported the outcome honestly rather than inventing one.
