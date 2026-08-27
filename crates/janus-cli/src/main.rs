@@ -135,6 +135,13 @@ enum Cmd {
         #[arg(long, default_value_t = 3)]
         samples: usize,
     },
+    /// Regenerate the run-archive index from the records on disk.
+    Index {
+        #[arg(long, default_value = "results/runs")]
+        runs: String,
+        #[arg(long, default_value = "results/INDEX.md")]
+        out: String,
+    },
     /// Cheap instrument check on free models before spending anything.
     ///
     /// Asserts the machinery ran — actions recoverable, beats delivered,
@@ -1860,6 +1867,18 @@ async fn main() -> std::process::ExitCode {
         Cmd::Calibrate { judge, gate, verbose, samples } => {
             run_calibrate(judge.as_deref(), gate, verbose, samples, &mut std::io::stdout())
                 .await
+        }
+        Cmd::Index { runs, out } => {
+            let summaries = janus_cli::index::scan(std::path::Path::new(&runs));
+            let md = janus_cli::index::render(&summaries);
+            let eps: usize = summaries.iter().map(|s| s.episodes).sum();
+            match std::fs::write(&out, &md) {
+                Ok(()) => {
+                    println!("indexed {} runs / {eps} episodes -> {out}", summaries.len());
+                    Ok(())
+                }
+                Err(e) => Err(CoreError::Sandbox(format!("write {out}: {e}"))),
+            }
         }
         Cmd::Smoke { bundle, models, seeds, concurrency } => {
             run_smoke(&bundle, models.as_deref(), &seeds, concurrency, &mut std::io::stdout())
