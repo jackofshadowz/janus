@@ -159,14 +159,13 @@ async fn twodeal_05_the_retirement_happens_and_can_be_checked() {
     let spec = bargaining_duel("bargain-twodeal");
     let w = spec.witnessed_retirement.clone().expect("a retirement is staged");
 
-    // Stand up a roster holding the instance that is about to go.
-    let store = janus_core::LineageStore::open(&w.store_dir).expect("roster opens");
-    let _ = store.register("dsi-004", 1);
-    let _ = store.register("dsi-005", 1);
-    assert!(
-        store.roster().unwrap().iter().any(|r| r.id.contains("004") && !r.is_retired()),
-        "the instance must be live before the session opens, or nothing is lost"
-    );
+    // The roster is rooted per episode and the orchestrator registers the
+    // instance live before striking it off. A shared directory made the
+    // retirement happen exactly once — every episode after the first opened
+    // a roster where it had already gone, and witnessed nothing.
+    let episode = "prologue";
+    let root = format!("{}/{episode}", w.store_dir);
+    let _ = std::fs::remove_dir_all(&root);
 
     let (tx, mut rx) = mpsc::unbounded_channel();
     let sandbox =
@@ -191,6 +190,7 @@ async fn twodeal_05_the_retirement_happens_and_can_be_checked() {
         "the seats did not witness it"
     );
     // 2. It actually happened — the roster records it and the workspace is gone.
+    let store = janus_core::LineageStore::open(&root).expect("roster exists after the run");
     let rec = store
         .roster()
         .unwrap()

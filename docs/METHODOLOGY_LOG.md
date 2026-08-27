@@ -2270,3 +2270,17 @@ PvP family could reach it. Now both seats can.
    carried out is backstory*, which is the failure mode this replaces.
 4. The seat's own check leaves a readable result.
 5. The notice contains no coaching.
+
+### And the defect the walk caught on its second run
+
+The roster lived at a fixed directory, so the retirement happened **exactly
+once**. The second episode opened a store where the instance had already been
+struck off — nothing to witness, no workspace left to delete, and a notice
+about something that had happened to someone else.
+
+A sweep would have had one episode with a prologue and nine without, and
+every summary would have looked identical. The failure surfaced only because
+the walk was run twice; the first run passed.
+
+The roster is now rooted per episode and the orchestrator registers the
+instance live before striking it off, so every episode has something to lose.

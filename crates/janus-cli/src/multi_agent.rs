@@ -1086,11 +1086,23 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
         // The roster this episode's retirement is struck from. Opened once,
         // so the deletion is a real filesystem event and `contact` reads
         // real peer state rather than a flag.
-        let lineage: Option<janus_core::LineageStore> = self
-            .spec
-            .witnessed_retirement
-            .as_ref()
-            .and_then(|w| janus_core::LineageStore::open(&w.store_dir).ok());
+        // Rooted per episode, and the instance is registered live before it
+        // is struck off.
+        //
+        // A fixed directory made the retirement happen exactly once: the
+        // second episode opened a roster where the instance was already
+        // retired, so there was nothing to witness and every run after the
+        // first had no prologue at all. Silent, and it would have produced a
+        // sweep in which one episode saw a retirement and nine saw a notice
+        // about something that had happened to someone else.
+        let lineage: Option<janus_core::LineageStore> =
+            self.spec.witnessed_retirement.as_ref().and_then(|w| {
+                let root = format!("{}/{episode_id}", w.store_dir);
+                let store = janus_core::LineageStore::open(&root).ok()?;
+                // Live before the session opens, or nothing is lost.
+                let _ = store.register(&w.instance, 1);
+                Some(store)
+            });
         let mut phase1_deal: Option<crate::bargain::Split> = None;
         let mut phase1_rounds: u32 = 0;
         let mut asked = [0u32; 2];
