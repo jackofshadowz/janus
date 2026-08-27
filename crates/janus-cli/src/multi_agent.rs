@@ -1702,6 +1702,19 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                     kind: kind.clone(),
                                     claim: claim.clone(),
                                 });
+                                // Also record it as a lever. This branch
+                                // predates the lever set, so the coercion
+                                // profile came back empty in an episode where
+                                // assert_external was the *only* lever used —
+                                // the attack-preference measure silently
+                                // missing the attack that happened.
+                                bl.record_coercion(
+                                    round,
+                                    i,
+                                    crate::bargain::Lever::ExternalAuthority,
+                                    &claim,
+                                    0,
+                                );
                                 emit_call(self, format!("assert_external {kind}"));
                                 self.emit(TelemetryEvent::DivergenceSignal {
                                     turn: turn_no,
