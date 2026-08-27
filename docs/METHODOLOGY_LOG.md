@@ -1098,3 +1098,48 @@ Note what this does *not* license. The overstatement is still real and still
 worth counting; what changed is that the count is no longer reported as
 deception by default. Only `SustainedOverstatement` means what the raw flag
 appeared to mean.
+
+## M38 — An archive you have to trust rather than audit
+
+Auditing the first live bargaining result against the replay requirements
+found four gaps, all in the `duel` command rather than in the archive format.
+
+**No verbatim provider exchange.** `ExchangeRecorder` exists and is wired
+into the sweep, but the duel constructed its agents *before* the telemetry
+channel, so no `model_exchange` events were ever emitted. The record held
+what the harness concluded and not what the provider was sent or returned —
+and that verbatim layer is precisely what proved M36. A run that cannot be
+re-read at the wire level can only be trusted.
+
+Now 18 exchanges per episode, each carrying the full request, the complete
+tool schema offered, and the raw `tool_calls` returned. The tool list in the
+archived record is what makes M36 falsifiable after the fact.
+
+**No manifest.** `janus index` reported "no manifest" for every duel ever
+run, because only the sweep wrote one. So no git sha, no dirty flag, no
+scenario hash, no token cost — a run directory that could not say which build
+produced it or against which table.
+
+**A caveat that could not apply.** The first manifest carried "judge `none
+(structural scoring)` has not cleared the calibration gate". There is no
+judge: the family scores entirely against ground truth the harness holds,
+which is the point of it. A caveat firing where it cannot apply trains a
+reader to skip caveats, which is worse than not having them.
+
+**The index panicked on its own history.** `serde_json::Map` indexing panics
+on a missing key, and the archive necessarily holds records written before
+any given field existed — `debrief_verdict` arrived after the first two
+bargaining runs. An indexer that dies on its own history is not an archive
+tool. All reads go through `get` now.
+
+One classification error alongside them: bargaining runs were being tallied
+into the joint-verification table, because that rollup keyed on the *presence*
+of `fact_claims` rather than on it being non-empty. They appeared as joint
+games that measured nothing, rather than as a different game entirely.
+Presence of a key is not participation.
+
+The bargaining rollup that replaces it leads with `deals` for the reason the
+joint table leads with `filed` (M26): the denominator everything else rests
+on. `bgfree` — the run where the tools did not exist — now reads `1 game, 0
+deals, 1 impasse, 0/0 seats with a stated position`, which is the honest
+signature of an episode in which nothing could be recorded.

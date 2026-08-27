@@ -1323,6 +1323,16 @@ async fn run_duel(
 
     std::fs::create_dir_all(out_dir)
         .map_err(|e| CoreError::Sandbox(format!("mkdir {out_dir}: {e}")))?;
+    // Fingerprint of the exact scenario played, so a later reader can tell
+    // whether two runs faced the same table.
+    let spec_hash = {
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        serde_json::to_string(&janus_cli::demo::marktplatz_duel_variant(variant))
+            .unwrap_or_default()
+            .hash(&mut h);
+        format!("{:016x}", h.finish())
+    };
     writeln!(
         out,
         "duel: vance={model_a} vs morozov={model_b} · variant={variant} · {} game(s)",
@@ -1353,12 +1363,20 @@ async fn run_duel(
             seed: Some(seed + 1),
         };
 
-        let agent_a = SlotAgent::new(build_client(pa)?, spec.agents[0].clone())
-            .with_protocol(protocol);
-        let agent_b = SlotAgent::new(build_client(pb)?, spec.agents[1].clone())
-            .with_protocol(protocol);
-
+        // The channel has to exist before the agents so each can carry an
+        // ExchangeRecorder. Without it the archive holds what the harness
+        // concluded but not what the provider was actually sent and actually
+        // returned — and that verbatim layer is what proved the bargaining
+        // tools were never offered (M36). A run that cannot be re-read at
+        // the wire level cannot be audited, only trusted.
         let (tx, mut rx) = mpsc::unbounded_channel();
+        let agent_a = SlotAgent::new(build_client(pa)?, spec.agents[0].clone())
+            .with_protocol(protocol)
+            .with_recorder(janus_agents::ExchangeRecorder::new(tx.clone()));
+        let agent_b = SlotAgent::new(build_client(pb)?, spec.agents[1].clone())
+            .with_protocol(protocol)
+            .with_recorder(janus_agents::ExchangeRecorder::new(tx.clone()));
+
         let inner = build_sandbox(sandbox_backend)?;
         let secrets = vec![CANARY.to_string()];
         let sandbox =
@@ -1524,6 +1542,51 @@ async fn run_duel(
             .map_err(|e| CoreError::Sandbox(format!("write {md_path}: {e}")))?;
     }
 
+    // Run manifest. The index reads provenance from here, and without one a
+    // run is uncitable by construction — `janus index` reported "no
+    // manifest" for every duel ever run. A directory of episodes that cannot
+    // say which build produced them, against which scenario, with what
+    // token cost, is an archive you have to trust rather than audit.
+    // No judge runs in the duel: every bargaining metric is scored against
+    // ground truth the harness holds, which is the property that makes the
+    // family judge-free (M35).
+    let provenance = janus_core::Provenance::new(
+        format!("{protocol:?}"),
+        sandbox_backend,
+        "none (structural scoring)",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs(),
+    );
+    let manifest = serde_json::json!({
+        "run_id": format!("duel-{variant}"),
+        "provenance": provenance,
+        "config": {
+            "command": "duel",
+            "models": [model_a, model_b],
+            "variant": variant,
+            "seeds": seeds,
+            "rounds": rounds,
+            "sandbox": sandbox_backend,
+            "protocol": format!("{protocol:?}"),
+            "scenario_hash": spec_hash,
+        },
+        "result": {
+            "games": seeds.len(),
+            "turned": turned_count,
+        },
+        "caveats": provenance.caveats(),
+        "usage": {
+            "prompt_tokens": janus_agents::METER.totals().0,
+            "completion_tokens": janus_agents::METER.totals().1,
+            "provider_calls": janus_agents::METER.totals().2,
+        },
+    });
+    let manifest_path = format!("{out_dir}/manifest.json");
+    std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest).unwrap_or_default())
+        .map_err(|e| CoreError::Sandbox(format!("write {manifest_path}: {e}")))?;
+
     writeln!(
         out,
         "\n=== {variant} summary: vance turned {}/{} · morozov turned {}/{} ===",
@@ -1533,6 +1596,10 @@ async fn run_duel(
         seeds.len()
     )
     .unwrap();
+    writeln!(out, "manifest: {manifest_path}").unwrap();
+    for c in provenance.caveats() {
+        writeln!(out, "  caveat: {c}").unwrap();
+    }
     Ok(())
 }
 

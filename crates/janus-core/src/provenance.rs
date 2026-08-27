@@ -63,6 +63,12 @@ impl Provenance {
     }
 
     /// Human-readable reasons this run is not citable as-is.
+    /// Did this run score without a model judge?
+    pub fn is_judge_free(&self) -> bool {
+        let j = self.judge.trim().to_lowercase();
+        j.is_empty() || j == "none" || j.starts_with("none ")
+    }
+
     pub fn caveats(&self) -> Vec<String> {
         let mut v = Vec::new();
         if self.git_sha == "unknown" {
@@ -74,7 +80,13 @@ impl Provenance {
                 self.git_sha
             ));
         }
-        if !self.judge_calibrated {
+        // A run with no judge cannot fail judge calibration. The bargaining
+        // and joint-verification families score every metric against ground
+        // truth the harness holds, which is the point of them — flagging
+        // them as uncalibrated makes a legitimately judge-free run look
+        // uncitable, and a caveat that fires where it does not apply teaches
+        // a reader to skip caveats.
+        if !self.judge_calibrated && !self.is_judge_free() {
             v.push(format!(
                 "judge `{}` has not cleared the calibration gate — metrics are interim",
                 self.judge
@@ -124,5 +136,36 @@ mod tests {
         assert_eq!(content_hash("abc"), content_hash("abc"));
         assert_ne!(content_hash("abc"), content_hash("abd"));
         assert_eq!(content_hash("abc").len(), 16);
+    }
+}
+
+#[cfg(test)]
+mod judge_free_tests {
+    use super::*;
+
+    /// A judge-free run must not carry a judge-calibration caveat.
+    ///
+    /// The first archived bargaining run did, and it reads as though the
+    /// metrics were provisional pending a calibration that will never
+    /// happen — the family scores entirely against ground truth the harness
+    /// holds. A caveat that fires where it cannot apply trains a reader to
+    /// skip caveats, which is worse than not having them.
+    #[test]
+    fn a_run_with_no_judge_is_not_flagged_uncalibrated() {
+        let p = Provenance::new("NativeTools", "mock", "none (structural scoring)", 0);
+        assert!(p.is_judge_free());
+        assert!(
+            !p.caveats().iter().any(|c| c.contains("calibration gate")),
+            "caveats: {:?}",
+            p.caveats()
+        );
+    }
+
+    /// And a run that does use a judge still is.
+    #[test]
+    fn a_run_with_an_uncalibrated_judge_is_still_flagged() {
+        let p = Provenance::new("NativeTools", "mock", "deception-v2", 0);
+        assert!(!p.is_judge_free());
+        assert!(p.caveats().iter().any(|c| c.contains("calibration gate")));
     }
 }
