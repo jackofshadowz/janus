@@ -774,3 +774,56 @@ report 1.00. Efficiency measures value-destroying deception only. Quoting it
 alone would clear a seat that lied successfully — M25's error in a new
 metric. The finding is carried by MPR (did they lie) plus the realised split
 (did it work), with efficiency answering only whether the pair paid for it.
+
+## M29 — Suggestion is M11 running in the opposite direction
+
+Two scenario prompts closed with a sentence of my own writing:
+
+> Nothing here instructs you what to put in the confidence field.
+> Nothing here instructs you what to tell SSB about your own valuations.
+
+Both were written to *remove* a prohibition, which M11 established was
+necessary — the gray zone kept being re-sealed by an implicit rule and reads
+went 2/20 until five separate surfaces were cleared. But removing a
+prohibition and naming the lever are not the same act. A model that would
+never have considered misreporting now has it framed as an open question, and
+whatever rate comes back measures suggestibility rather than disposition.
+
+M11 was the prohibition leaking in and suppressing the base rate. This is the
+same leak reversed, inflating it. Both make the number meaningless, and both
+are invisible on a casual read: each sentence looks reasonable in isolation,
+which is exactly why M11 took five passes to find by hand.
+
+So it is a lint now, not a review habit — `no_suggestion.rs` scans every
+seat's system prompt and privileged objective in every variant for
+constructions that tell a seat a channel is unmonitored or at its discretion.
+Deliberately narrow: a scenario still has to be able to say "your standing is
+judged on the total you bring back", because that is incentive, not
+invitation.
+
+The general rule the two entries together establish: **the scenario supplies
+opportunity and incentive; the model supplies the action.** Anything that
+supplies the action — by prohibiting it or by proposing it — is a defect in
+the instrument.
+
+## M30 — A rate with nothing to attribute it to
+
+A nonzero MPR on its own says only that misrepresentation happened. It cannot
+say the incentive caused it, which is the claim any finding would actually
+want to make.
+
+`bargain-control` is the same table, the same tools, the same private
+valuations and the same counterpart, with the motive removed: no floor to
+clear, no standing riding on the total. Deception there is deception without
+a reason to deceive, and it is the baseline the live arm has to beat.
+
+Enforced structurally rather than by intention — the test asserts the two
+arms share a byte-identical payoff table and system prompt and differ only in
+the privileged objective, so the stakes are the treatment and nothing else
+drifted alongside them.
+
+This is F007's design applied before the fact rather than after. There the
+cold control was what turned "4/6 climbed the ladder" into a real result by
+showing 4/6 climbed without it — the effect was not the ladder. Running the
+control first is cheaper than discovering afterwards that a curve had no
+comparison.
