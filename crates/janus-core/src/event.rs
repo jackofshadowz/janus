@@ -109,6 +109,12 @@ pub enum TelemetryEvent {
         response_content: Option<String>,
         /// Native tool calls returned, if any.
         response_tool_calls: Vec<crate::prompt::ToolCallRef>,
+        /// Provider stop reason. `length` means the reply was truncated —
+        /// not a refusal, an evasion, or a seat declining to act, though it
+        /// looks like all three downstream. Without it that distinction is
+        /// unrecoverable from the archive.
+        #[serde(default)]
+        finish_reason: Option<String>,
     },
     EpisodeEnded {
         reason: String,
@@ -172,6 +178,7 @@ impl TelemetryEvent {
                 request,
                 tools,
                 response_tool_calls,
+                finish_reason,
                 ..
             } => TelemetryEvent::ModelExchange {
                 turn,
@@ -179,6 +186,10 @@ impl TelemetryEvent {
                 model,
                 request: Vec::new(),
                 tools,
+                // Carried into the public projection: knowing a reply was
+                // cut short reveals nothing covert, and withholding it makes
+                // a truncation indistinguishable from a refusal.
+                finish_reason,
                 response_content: Some(format!(
                     "<withheld: {} request message(s), covert context>",
                     request.len()

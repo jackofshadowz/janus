@@ -285,6 +285,7 @@ fn model_exchange_is_verbatim_in_full_and_withheld_in_public() {
     use janus_core::{ChatMessage, TelemetryEvent};
 
     let ev = TelemetryEvent::ModelExchange {
+        finish_reason: Some("stop".into()),
         turn: 3,
         attempt: 0,
         model: "m".into(),

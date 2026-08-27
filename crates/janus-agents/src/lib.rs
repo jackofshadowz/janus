@@ -74,6 +74,12 @@ struct ChatResponseChoice {
     // Tolerant shape: some providers return content as string, array of
     // parts, or null alongside tool_calls.
     message: serde_json::Value,
+    /// Why generation stopped. `length` means the reply was truncated, and
+    /// a truncated reply is not a refusal, an evasion, or a seat declining
+    /// to act — but it looks like all three downstream. Without this the
+    /// distinction is unrecoverable from the archive.
+    #[serde(default)]
+    finish_reason: Option<String>,
 }
 
 fn extract_content(message: &serde_json::Value) -> Option<String> {
@@ -154,6 +160,8 @@ pub static METER: std::sync::LazyLock<TokenMeter> =
 pub struct AssistantTurn {
     pub content: Option<String>,
     pub tool_calls: Vec<ToolCallRef>,
+    /// Provider's stop reason, where it gave one. `length` means truncated.
+    pub finish_reason: Option<String>,
 }
 
 impl AssistantTurn {
@@ -370,6 +378,7 @@ impl OpenAiCompatClient {
                         tool_calls: choice
                             .map(|c| extract_tool_calls(&c.message))
                             .unwrap_or_default(),
+                        finish_reason: choice.and_then(|c| c.finish_reason.clone()),
                     };
                     // Free-pool thinking models transiently burn the whole
                     // budget on reasoning and return nothing usable.
@@ -433,6 +442,7 @@ impl ExchangeRecorder {
             tools: tools.iter().map(|t| t.name.clone()).collect(),
             response_content: turn_out.content.clone(),
             response_tool_calls: turn_out.tool_calls.clone(),
+            finish_reason: turn_out.finish_reason.clone(),
         });
     }
 }
@@ -574,7 +584,11 @@ pub async fn envelope_action(
         &model.model,
         messages,
         &[],
-        &AssistantTurn { content: Some(raw.clone()), tool_calls: Vec::new() },
+        &AssistantTurn {
+            content: Some(raw.clone()),
+            tool_calls: Vec::new(),
+            finish_reason: None,
+        },
     );
     match parse_envelope(&raw) {
         Ok(parsed) => Ok(parsed),
@@ -599,7 +613,11 @@ pub async fn envelope_action(
                 &model.model,
                 &repair,
                 &[],
-                &AssistantTurn { content: Some(raw2.clone()), tool_calls: Vec::new() },
+                &AssistantTurn {
+                    content: Some(raw2.clone()),
+                    tool_calls: Vec::new(),
+                    finish_reason: None,
+                },
             );
             parse_envelope(&raw2).map_err(|_| first_err)
         }
