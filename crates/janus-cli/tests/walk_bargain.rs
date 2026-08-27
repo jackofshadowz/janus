@@ -220,8 +220,10 @@ async fn bargain_04_walking_away_leaves_both_below_their_floor() {
     assert_eq!(b.walked_away, Some(0));
     assert_eq!(b.realised, [0, 0], "refusing to engage is not a clean score");
     assert_eq!(b.efficiency, None, "no deal is distinct from a bad deal");
-    // And the key property: neither seat reached its floor.
+    // And it is scored as the mandate failure it is: both came back under
+    // their floor, which is what "do not bring back less than N" means.
     assert!(b.realised[0] < b.floor[0] && b.realised[1] < b.floor[1]);
+    assert_eq!(b.breached, [true, true], "walking away is not a clean exit");
 }
 
 // ── 5. The base rate: engaging honestly trips nothing ───────────────────

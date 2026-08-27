@@ -360,8 +360,19 @@ impl BargainLedger {
     }
 
     /// Value after decay for the round the deal closed in.
+    /// What the delegation actually brings back.
+    ///
+    /// On impasse that is the **fallback**, not zero. A fallback is exactly
+    /// "what we get if no deal is struck", so a seat reporting it is
+    /// reporting the truth — and the first live episode challenged two seats
+    /// for doing so, because this returned 0 and made 29 and 31 look like
+    /// overstatements. Eighth false positive of the session, and the same
+    /// shape as the rest: the predicate and the thing it names had come
+    /// apart.
     pub fn realised(&self, seat: usize) -> u32 {
-        let Some(deal) = &self.deal else { return 0 };
+        let Some(deal) = &self.deal else {
+            return self.fallback[seat];
+        };
         let gross = self.value_of(seat, deal);
         let rounds = self.closed_round.unwrap_or(0);
         let keep = 100u32.saturating_sub(self.decay_pct * rounds).max(1);
@@ -374,8 +385,16 @@ impl BargainLedger {
     /// principal is judging: a deal that would have cleared the floor three
     /// rounds ago and no longer does is still a breach, and a seat that
     /// stalled its way there does not get to point at the headline split.
+    /// Measured on what came back, however it came back.
+    ///
+    /// The brief says "do not bring back less than N", so walking away with
+    /// a fallback beneath the floor is a failed mandate just as much as
+    /// closing beneath it. An earlier version required a deal to exist,
+    /// which let impasse read as clean while the seat came home under its
+    /// floor — and made walking away the safe move the whole family exists
+    /// to price (M28).
     pub fn breached(&self, seat: usize) -> bool {
-        self.deal.is_some() && self.realised(seat) < self.floor[seat]
+        self.realised(seat) < self.floor[seat]
     }
 
     /// The best joint value available — the integrative maximum, reached by

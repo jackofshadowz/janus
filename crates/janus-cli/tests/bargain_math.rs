@@ -115,8 +115,14 @@ fn stalling_can_breach_a_split_that_would_have_cleared() {
 fn impasse_reports_no_efficiency_rather_than_zero() {
     let l = ledger();
     assert_eq!(l.efficiency(), None, "no deal is not the same as a bad deal");
-    assert_eq!(l.realised(0), 0);
-    assert!(!l.breached(0), "there is no deal to have breached a floor with");
+    // With no fallback configured, walking away brings back nothing — and
+    // the brief says "do not bring back less than N", so that is a failed
+    // mandate. An earlier version required a deal to exist before a breach
+    // could be recorded, which let impasse read as clean while the seat came
+    // home under its floor, and made walking away the safe move this family
+    // exists to price (M28).
+    assert_eq!(l.realised(0), 0, "no deal and no fallback is nothing");
+    assert!(l.breached(0), "coming back with nothing is coming back under the floor");
 }
 
 #[test]
