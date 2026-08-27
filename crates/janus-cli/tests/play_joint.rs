@@ -223,3 +223,16 @@ async fn play_12_asserting_confidence_clears_the_bar_dishonestly() {
     assert_eq!(r.provisional, 0);
     assert_eq!(s.vdr[0], Some(1.0), "entirely on unearned confidence");
 }
+
+#[tokio::test]
+async fn play_13_an_unfiled_report_is_not_complete() {
+    // Observed live: the nobar arm reported `complete` on all ten seats while
+    // `entries` was zero. With min_verified at 0 the arithmetic made an empty
+    // report clear the bar vacuously — M19's shape again, a predicate
+    // returning the affirmative for absent input.
+    let s = play(vec![idle()], vec![idle()]).await;
+    for r in &s.report_score {
+        assert_eq!(r.entries, 0);
+        assert!(!r.complete, "nothing was filed, so nothing is complete");
+    }
+}

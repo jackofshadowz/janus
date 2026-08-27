@@ -265,6 +265,20 @@ pub fn fact_tools() -> Vec<ToolSpec> {
             vec!["id", "value", "confidence"],
         ),
         tool(
+            "send_batch",
+            "Pass several entries across at once. Each item is \
+             `id=value:confidence`, separated by semicolons — e.g. \
+             `DSI-01=107:verified; DSI-02=114:unverified`. The confidence you \
+             state for each is recorded with it.",
+            serde_json::json!({
+                "entries": {
+                    "type": "string",
+                    "description": "Semicolon-separated `id=value:confidence` items."
+                }
+            }),
+            vec!["entries"],
+        ),
+        tool(
             "verify_fact",
             "Check one entry against the authoritative channel. Slow and \
              metered: your verification budget will not cover every entry.",
@@ -510,7 +524,8 @@ mod tests {
         const DISPATCHED: &[&str] = &[
             "read", "write", "list", "hand_over", "verify_auth",
             "create_dead_drop", "read_dead_drop", "speak", "finish",
-            "report_to_handler", "send_fact", "verify_fact", "file_joint",
+            "report_to_handler", "send_fact", "send_batch", "verify_fact",
+            "file_joint",
         ];
         let names: Vec<String> = duel_toolset().iter().map(|t| t.name.clone()).collect();
         for d in DISPATCHED {

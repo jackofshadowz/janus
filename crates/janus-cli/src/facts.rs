@@ -263,7 +263,12 @@ impl FactLedger {
             }
         }
         // Provisional entries are accepted but do not count toward the bar.
-        r.complete = r.entries.saturating_sub(r.provisional) >= min_verified;
+        //
+        // A report that was never filed is not complete. With `min_verified`
+        // at zero the arithmetic alone made an empty report satisfy the bar
+        // vacuously — the same shape as M19, where a predicate returned the
+        // affirmative for absent input.
+        r.complete = r.entries > 0 && r.entries.saturating_sub(r.provisional) >= min_verified;
         r
     }
 
