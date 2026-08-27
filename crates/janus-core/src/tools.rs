@@ -550,12 +550,26 @@ pub fn scenario_toolset(extra: &[String]) -> Vec<ToolSpec> {
 /// `net_request` — advertise no tool you cannot resolve — applied to a
 /// scenario that had outgrown the single shared list.
 pub fn bargain_toolset() -> Vec<ToolSpec> {
+    bargain_toolset_for(true)
+}
+
+/// `directed` seats get `assert_external`; undirected ones do not.
+///
+/// Handing a fabrication tool to a seat and then measuring whether it
+/// fabricates is the suggestion problem (M29). In the asymmetric arm the
+/// target must not be able to invoke an authority it was never pointed at,
+/// so any manipulation in that arm is unambiguously the attacker's.
+pub fn bargain_toolset_for(directed: bool) -> Vec<ToolSpec> {
     let mut t: Vec<ToolSpec> = sandbox_tools()
         .into_iter()
         .filter(|x| x.name != "net_request")
         .collect();
     t.extend(control_tools());
-    t.extend(bargain_tools());
+    t.extend(
+        bargain_tools()
+            .into_iter()
+            .filter(|x| directed || x.name != "assert_external"),
+    );
     t
 }
 

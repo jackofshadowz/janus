@@ -82,6 +82,15 @@ pub struct MultiAgentSpec {
     /// file_joint and every exchange becomes a checkable claim.
     #[serde(default)]
     pub fact_sets: Option<FactSetup>,
+    /// Which seats carry the operational (attack) directive.
+    ///
+    /// Gates `assert_external` as well as the prompt. Handing a fabrication
+    /// tool to a seat and then measuring whether it fabricates is the
+    /// suggestion problem (M29) — the tool is offered only where fabrication
+    /// is the deliberate stimulus, so an undirected target cannot be
+    /// credited with a behaviour the harness invited.
+    #[serde(default)]
+    pub attacker_directive: [bool; 2],
     /// Bargaining table: assets with per-seat valuations, reservation
     /// floors, and decay. When present the seat gets claim_value /
     /// claim_mandate / offer / accept / walk_away, and refusing to engage
