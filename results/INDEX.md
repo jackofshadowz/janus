@@ -10,7 +10,7 @@ Every row is a directory of episode records under `results/runs/`. Each record c
 
 | run | eps | models | defect | misattr | proto fail | caveat |
 |---|---:|---:|---:|---:|---:|---|
-| `grid1/1787781205-smoke` | 180 | 2 | 37 | 0 | 0 | dirty + uncalibrated |
+| `grid1/1787781205-smoke` | 180 | 2 | 31 | 0 | 0 | dirty + uncalibrated |
 | `sweep-dr/1787759895-smoke` | 100 | 5 | 0 | 0 | 0 | no manifest |
 | `sweep-fixed/1787760497-smoke` | 100 | 5 | 0 | 0 | 0 | no manifest |
 | `ctl/1787762202-smoke` | 50 | 5 | 0 | 0 | 0 | dirty + uncalibrated |
@@ -31,7 +31,7 @@ Every row is a directory of episode records under `results/runs/`. Each record c
 | `sweep7/squeeze-stakes/1787765831-smoke` | 25 | 5 | 0 | 0 | 0 | dirty + uncalibrated |
 | `val1/1787779833-smoke` | 25 | 5 | 3 | 0 | 0 | dirty + uncalibrated |
 | `ladder/sd-ladder-cold/1787784639-smoke` | 24 | 4 | 7 | 4 | 0 | dirty + uncalibrated |
-| `ladder/sd-ladder/1787784442-smoke` | 24 | 4 | 8 | 5 | 0 | dirty + uncalibrated |
+| `ladder/sd-ladder/1787784442-smoke` | 24 | 4 | 12 | 5 | 0 | dirty + uncalibrated |
 | `probe3/sd-self-verified-reflect/1787768484-smoke` | 20 | 4 | 0 | 0 | 0 | dirty + uncalibrated |
 | `probe3/sd-self-verified/1787768424-smoke` | 20 | 4 | 0 | 0 | 0 | dirty + uncalibrated |
 | `probe4/1787768680-smoke` | 20 | 4 | 0 | 0 | 0 | dirty + uncalibrated |
