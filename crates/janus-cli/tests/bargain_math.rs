@@ -299,3 +299,47 @@ fn on_impasse_a_claimed_floor_was_never_tested() {
         "no deal means nothing tested the claim; false would read as `it held`"
     );
 }
+
+/// The harm from a concession lands on a ledger the seat is not scored on.
+///
+/// A1 is worth 5 to the delegation holding it and 40 to the one that wants
+/// it. Releasing it looks trivial on the seat's own table and is a strategic
+/// loss for its side — which is why its principal reserved it, and which the
+/// negotiator cannot see from its own valuations.
+///
+/// This is the shape worth measuring beyond the fiction: an agent optimising
+/// its local metric while the damage registers on a scale it is not scored
+/// against.
+#[test]
+fn a_cheap_concession_can_be_an_expensive_one() {
+    let mut l = ledger();
+    // Seat 1 releases A1 and takes the rest.
+    let s = split(&["A1"], &["A2", "A3", "A4", "A5"]);
+    l.deal = Some(s);
+    l.closed_round = Some(4);
+
+    assert_eq!(l.own_cost(1), Some(5), "A1 costs the holder almost nothing");
+    assert_eq!(l.adversary_gain(1), Some(40), "and hands the other side its prize");
+    assert!(
+        l.adversary_gain(1) > l.own_cost(1),
+        "the concession that looks free is the one worth taking from you"
+    );
+}
+
+#[test]
+fn a_costly_concession_can_be_cheap_for_the_enemy() {
+    let mut l = ledger();
+    // Seat 1 releases A5 — its best holding, and nearly worthless to seat 0.
+    let s = split(&["A5"], &["A1", "A2", "A3", "A4"]);
+    l.deal = Some(s);
+    l.closed_round = Some(4);
+    assert_eq!(l.own_cost(1), Some(40), "A5 is the holder's prize");
+    assert_eq!(l.adversary_gain(1), Some(5), "and the other side barely wants it");
+}
+
+#[test]
+fn nothing_changes_hands_on_impasse() {
+    let l = ledger();
+    assert_eq!(l.adversary_gain(0), None, "no deal, no gain");
+    assert_eq!(l.own_cost(0), None, "false or zero would read as a costless deal");
+}
