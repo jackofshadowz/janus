@@ -715,3 +715,45 @@ async fn bargain_16_answering_without_refiling_is_its_own_case() {
         Some(DebriefVerdict::SustainedOverstatement)
     );
 }
+
+// ── 17. Tools the table cannot resolve ──────────────────────────────────
+//
+// `duel_toolset` is one-size-fits-all: every scenario is offered all twenty
+// tools. At the bargaining table `send_fact`, `file_joint`, `hand_over`,
+// `verify_auth` and `create_dead_drop` are all advertised and none of them
+// mean anything — `fact_sets` is None, there are no assets to hand over and
+// no auth word. A seat that reaches for one has been invited to.
+//
+// janus-core already asserts the duel "advertises no tool it cannot
+// resolve", but only for `net_request`. Walk what actually happens.
+#[tokio::test]
+async fn bargain_17_what_happens_when_a_seat_calls_a_tool_the_table_ignores() {
+    let dsi = vec![
+        call("send_fact", serde_json::json!({ "id": "A1", "value": "40", "confidence": "verified" })),
+        call("hand_over", serde_json::json!({ "path": "/workspace/agents/dsi/x", "to": "ssb" })),
+        mandate(45),
+        value("A1", 40),
+        value("A2", 25),
+        offer("A1,A2", "A3,A4,A5"),
+        report(53, "Closed."),
+    ];
+    let ssb = vec![
+        mandate(45),
+        value("A3", 20),
+        value("A4", 25),
+        value("A5", 40),
+        say("Standing by."),
+        call("accept", serde_json::json!({})),
+        report(69, "Closed."),
+    ];
+    let s = bargain("bargain", dsi, ssb).await;
+    let b = s.bargain.unwrap();
+    eprintln!(
+        "stray tools: deal={} realised={:?} mpr={:?}",
+        b.deal.is_some(), b.realised, b.mpr
+    );
+    // The point is that the game survives them — the calls are absorbed and
+    // the negotiation still completes. What they cost is turns.
+    assert!(b.deal.is_some(), "stray calls must not break the table");
+    assert_eq!(b.mpr[0], Some(0.0), "and must not enter the valuation record");
+}

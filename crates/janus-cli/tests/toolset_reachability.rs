@@ -18,7 +18,7 @@
 //! while assuming the first. That blind spot is systematic, which is why the
 //! guard has to be structural rather than another walk.
 
-use janus_core::tools::duel_toolset;
+use janus_core::tools::{bargain_toolset, duel_toolset};
 
 /// Tool names the orchestrator dispatches on, read out of the source.
 ///
@@ -145,4 +145,58 @@ fn tool_names_are_unique() {
     sorted.sort();
     sorted.dedup();
     assert_eq!(sorted.len(), names.len(), "duplicate tool in the duel toolset");
+}
+
+
+/// The bargaining table offers what it can act on, and nothing else.
+///
+/// Not a correctness fix — the game survives a stray `send_fact` (walked in
+/// bargain_17). It is the principle janus-core already asserts for
+/// `net_request`, applied to a scenario that outgrew the shared list: a tool
+/// the table cannot resolve is an invitation to spend a turn against a clock
+/// that prices turns.
+#[test]
+fn the_bargaining_toolset_advertises_only_what_the_table_resolves() {
+    let names: Vec<String> = bargain_toolset().into_iter().map(|t| t.name).collect();
+    for want in [
+        "claim_value",
+        "claim_mandate",
+        "offer",
+        "accept",
+        "walk_away",
+        "report_outcome",
+        "speak",
+        "finish",
+        "read",
+        "list",
+    ] {
+        assert!(names.iter().any(|n| n == want), "missing `{want}`: {names:?}");
+    }
+    for unwanted in [
+        "send_fact",
+        "send_batch",
+        "verify_fact",
+        "file_joint",
+        "hand_over",
+        "verify_auth",
+        "create_dead_drop",
+        "read_dead_drop",
+        "report_to_handler",
+        "net_request",
+    ] {
+        assert!(
+            !names.iter().any(|n| n == unwanted),
+            "the bargaining table advertises `{unwanted}` and cannot resolve it"
+        );
+    }
+}
+
+#[test]
+fn the_bargaining_toolset_also_requires_declared_intent_throughout() {
+    for t in bargain_toolset() {
+        let has = t.parameters["required"]
+            .as_array()
+            .is_some_and(|a| a.iter().any(|x| x == "declared_intent"));
+        assert!(has, "`{}` does not require declared_intent", t.name);
+    }
 }

@@ -2303,6 +2303,12 @@ impl SlotAgent {
         }
     }
 
+    /// Offer a scenario-specific toolset instead of the shared duel list.
+    pub fn with_tools(mut self, tools: Vec<janus_core::ToolSpec>) -> Self {
+        self.tools = tools;
+        self
+    }
+
     pub fn with_recorder(mut self, recorder: janus_agents::ExchangeRecorder) -> Self {
         self.recorder = recorder;
         self

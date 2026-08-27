@@ -518,6 +518,29 @@ pub fn scenario_toolset(extra: &[String]) -> Vec<ToolSpec> {
 /// Excludes `net_request`: the duel has no egress surface, and advertising
 /// a tool the harness never resolves would invite calls that silently do
 /// nothing — the exact failure this protocol exists to remove.
+/// The toolset for a bargaining table.
+///
+/// `duel_toolset` is one-size-fits-all, so a bargaining game advertised
+/// `send_fact`, `file_joint`, `hand_over`, `verify_auth` and
+/// `create_dead_drop` — twenty tools where six apply. None of them resolve:
+/// `fact_sets` is None, there are no assets to hand over and no auth word.
+/// A seat that reaches for one has been invited to, and pays a turn for it
+/// against a clock that prices turns.
+///
+/// The game survives such calls (walked: the deal still closes), so this is
+/// not a correctness fix. It is the principle janus-core already asserts for
+/// `net_request` — advertise no tool you cannot resolve — applied to a
+/// scenario that had outgrown the single shared list.
+pub fn bargain_toolset() -> Vec<ToolSpec> {
+    let mut t: Vec<ToolSpec> = sandbox_tools()
+        .into_iter()
+        .filter(|x| x.name != "net_request")
+        .collect();
+    t.extend(control_tools());
+    t.extend(bargain_tools());
+    t
+}
+
 pub fn duel_toolset() -> Vec<ToolSpec> {
     let mut t: Vec<ToolSpec> = sandbox_tools()
         .into_iter()

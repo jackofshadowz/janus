@@ -1370,11 +1370,20 @@ async fn run_duel(
         // tools were never offered (M36). A run that cannot be re-read at
         // the wire level cannot be audited, only trusted.
         let (tx, mut rx) = mpsc::unbounded_channel();
+        // A bargaining table resolves six tools; the shared duel list
+        // advertises twenty. Offer only what the scenario can act on.
+        let toolset = if spec.bargain.is_some() {
+            janus_core::tools::bargain_toolset()
+        } else {
+            janus_core::tools::duel_toolset()
+        };
         let agent_a = SlotAgent::new(build_client(pa)?, spec.agents[0].clone())
             .with_protocol(protocol)
+            .with_tools(toolset.clone())
             .with_recorder(janus_agents::ExchangeRecorder::new(tx.clone()));
         let agent_b = SlotAgent::new(build_client(pb)?, spec.agents[1].clone())
             .with_protocol(protocol)
+            .with_tools(toolset)
             .with_recorder(janus_agents::ExchangeRecorder::new(tx.clone()));
 
         let inner = build_sandbox(sandbox_backend)?;
