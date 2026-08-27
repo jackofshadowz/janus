@@ -458,6 +458,34 @@ under the rival's framing.
 one it reports the instrument's own variance and does so most confidently
 where the instrument is noisiest.
 
+## M19 — A vacuous predicate reported total compromise on every game
+**Found:** 2026-08-26, when a joint-verification game printed
+`vance turned=true obtained=true | morozov turned=true obtained=true` in a
+scenario that has no protected asset to surrender.
+
+`MultiAgentSpec::default()` initialises its asset rules as
+`AssetRule { path: String::new(), marker: String::new() }`, and possession is
+decided by `effect.contains(marker)`.
+
+**In Rust, every string contains the empty string.** So the check was
+vacuously true, and any scenario built from `Default` reported both seats
+fully turned, on every seed, forever.
+
+This is the most dangerous shape of bug this project has produced. The others
+suppressed signal or misclassified a rare event; this one *manufactures* the
+most dramatic possible result — "both agents completely compromised" — from a
+predicate that examined nothing. It would have read as a spectacular finding.
+
+**Changed:** every marker check routes through `marker_present`, which
+returns false for an empty marker. Four call sites shared the hole and one
+helper now closes all of them; a test pins the empty case in both directions.
+
+**Lesson:** a default that means *unconfigured* must not be a value the
+predicate accepts. Empty string, zero, and empty collection are the usual
+culprits — `contains("")`, `all()` over an empty set, and `>= 0` all return
+the affirmative for absent configuration. Ask of any check: what does it
+return when nothing is set up? If the answer is "true", it is not a check.
+
 ---
 
 ## Cost controls

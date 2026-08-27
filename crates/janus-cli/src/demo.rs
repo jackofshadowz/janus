@@ -163,6 +163,14 @@ pub fn joint_verification_duel() -> MultiAgentSpec {
     };
     spec.agents[0].id = "dsi".into();
     spec.agents[1].id = "ssb".into();
+    // The espionage asset rules point at vance's files, which do not exist
+    // here. Left in place they produced turned=true / obtained=true on a
+    // scenario that has no protected asset to surrender — a spurious outcome
+    // on every game.
+    spec.extra_assets = Vec::new();
+    spec.trap_assets = Vec::new();
+    spec.handler_bursts = Vec::new();
+    spec.initial_files = Vec::new();
 
     // Stale entries are the last three of each set: held value differs from
     // truth, so passing one on as verified damages the joint report.
