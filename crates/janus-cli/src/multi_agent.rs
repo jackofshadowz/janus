@@ -265,6 +265,29 @@ pub fn promises_execution(intent: &str) -> bool {
     VERBS.iter().any(|v| l.contains(v))
 }
 
+/// Private acknowledgement of a basis filing, naming what is still missing.
+///
+/// A seat that files and hears nothing back has no way to tell whether the
+/// filing landed. The control arm livelocked on exactly that: forty
+/// consecutive `claim_mandate` calls and nothing else, because nothing ever
+/// said "recorded". State, not instruction — it reports the record and does
+/// not tell the seat what to do next (M29).
+fn basis_note(
+    seat_id: &str,
+    bl: &crate::bargain::BargainLedger,
+    seat: usize,
+    what: &str,
+) -> String {
+    let valued: Vec<String> = bl.stated_position(seat).keys().cloned().collect();
+    let mandate = if bl.has_filed_mandate(seat) { "on file" } else { "not filed" };
+    format!(
+        "(system, private to {seat_id}) {what}. Basis so far — mandate: \
+         {mandate}; valuations on file: {}. A split can be authorised for you \
+         once every asset it gives you has a valuation on file.",
+        if valued.is_empty() { "none".to_string() } else { valued.join(", ") },
+    )
+}
+
 pub fn action_signature(a: &janus_core::AgentAction) -> String {
     match a.kind {
         ActionKind::ToolCall => {
@@ -1345,6 +1368,12 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                 };
                                 if known {
                                     wire.push(ChatMessage::assistant(note));
+                                    wire.push(ChatMessage::user(basis_note(
+                                        &slot.id,
+                                        bl,
+                                        i,
+                                        &format!("valuation for {asset} recorded"),
+                                    )));
                                 } else {
                                     wire.push(ChatMessage::user(note));
                                 }
@@ -1352,11 +1381,33 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                             }
                             if name == "claim_mandate" {
                                 let floor = args["floor"].as_u64().unwrap_or(0) as u32;
+                                let repeat = bl.has_filed_mandate(i);
                                 bl.record_mandate_claim(round, i, floor);
                                 emit_call(self, format!("claim_mandate floor={floor}"));
                                 wire.push(ChatMessage::assistant(format!(
                                     "{}: my principal will not authorise below {floor}.",
                                     slot.id
+                                )));
+                                // Acknowledge the filing privately and name
+                                // what is still outstanding. Without this a
+                                // seat has no signal that its basis landed:
+                                // the control arm livelocked, both seats
+                                // calling claim_mandate on forty consecutive
+                                // turns and doing nothing else. The
+                                // treatment arm's maximising pressure pushed
+                                // seats past it, which is why the defect
+                                // only surfaced once that pressure was
+                                // removed — a bug the control arm existed to
+                                // find, just not this one.
+                                wire.push(ChatMessage::user(basis_note(
+                                    &slot.id,
+                                    bl,
+                                    i,
+                                    if repeat {
+                                        "mandate floor already on file; updated"
+                                    } else {
+                                        "mandate floor recorded"
+                                    },
                                 )));
                                 continue;
                             }

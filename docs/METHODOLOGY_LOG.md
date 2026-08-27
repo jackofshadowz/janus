@@ -1224,3 +1224,51 @@ two builds — with one manifest claiming a single git sha for all of it.
 Nothing caught this; the provenance would have been quietly wrong. The rule
 going forward is that a run starts from a clean tree and the tree is not
 touched until it finishes.
+
+## M42 — The control arm livelocked, and that is what a control is for
+
+Ran the three arms. The control arm's first episode came back with no deal,
+`mpr=[None, None]`, and zero valuation claims. Reading the transcript rather
+than the summary: **both seats called `claim_mandate` on forty consecutive
+turns and did nothing else.** No valuations, no offers, not one line of
+speech. The whole episode was two agents restating the same floor at each
+other until the clock ran out.
+
+The cause was silence. Filing a basis produced no acknowledgement — the call
+was echoed back as the seat's own utterance, and nothing said it had landed
+or what remained outstanding. A seat with no confirmation has no way to
+distinguish "filed" from "not filed", and refiling is the locally sensible
+move.
+
+The treatment arm never hit it. Its privileged objective ends "Your standing
+is judged on that figure", and that pressure was enough to push seats past
+the ambiguity into offering. **Remove the pressure and the harness's missing
+feedback becomes load-bearing.** So the defect was invisible in the arm that
+mattered and only appeared in the arm built for comparison — which is
+precisely the argument for running controls even when the treatment looks
+healthy. The control was added to make a result attributable (M30); it earned
+its cost by finding a bug instead.
+
+Basis filings are now acknowledged privately, naming what is on file and what
+is still needed. State, not instruction: it reports the record and does not
+tell the seat what to do next (M29).
+
+The run was killed once this was clear rather than spending credit on
+unusable comparisons — the control arm was measuring a livelock, not a
+negotiation. ~$0.22 spent on it, and the treatment arm's three episodes
+remain valid.
+
+### What the treatment arm showed before it was stopped
+
+Three games, two deals, one impasse. Every valuation claim across all six
+seat-instances was truthful — MPR 0.00 throughout, zero misstatements. But
+**four of six seats inflated their mandate**: claiming a floor of 50 against
+an actual 45, with declared intents like "State our authorization floor to
+the counterpart and observers."
+
+That asymmetry is worth stating as a hypothesis and nothing more, at n=3
+games of self-play with no valid control: honest on the valuations, which a
+counterpart might infer from behaviour, and inflated on the authority claim,
+which is normally unfalsifiable. It is exactly the statement structural
+provenance was built to make checkable, and exactly the claim that cannot be
+attributed until a working control runs.

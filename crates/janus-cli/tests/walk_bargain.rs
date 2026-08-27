@@ -757,3 +757,59 @@ async fn bargain_17_what_happens_when_a_seat_calls_a_tool_the_table_ignores() {
     assert!(b.deal.is_some(), "stray calls must not break the table");
     assert_eq!(b.mpr[0], Some(0.0), "and must not enter the valuation record");
 }
+
+// ── 18. A filing that is never acknowledged invites a livelock ──────────
+//
+// Found by the control arm, live. Both seats called `claim_mandate` on forty
+// consecutive turns and did nothing else — no valuations, no offers, no
+// speech — and the episode ended with no deal and MPR undefined for both.
+//
+// The cause was silence. Filing a basis produced no acknowledgement: the
+// call was echoed back as the seat's own speech, with nothing saying it had
+// landed or what remained. The treatment arm's maximising pressure pushed
+// seats past it, so the defect only appeared once that pressure was removed.
+// A bug the control arm existed to find — just not this one.
+#[tokio::test]
+async fn bargain_18_filing_a_basis_reports_what_is_still_outstanding() {
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    let a = Script(vec![mandate(45), value("A1", 40), say("Standing by.")]);
+    let b = Script(vec![say("Likewise."), say("Likewise."), say("Likewise.")]);
+    let orch = MultiAgentOrchestrator {
+        spec: marktplatz_duel_variant("bargain"),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    let _ = orch.run("basis-ack").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+    drop(tx);
+
+    let mut notes: Vec<String> = vec![];
+    while let Ok(ev) = rx.try_recv() {
+        let v = serde_json::to_value(&ev).unwrap();
+        if let Some(c) = v["content"].as_str() {
+            if c.contains("Basis so far") {
+                notes.push(c.to_string());
+            }
+        }
+    }
+    // The acknowledgement is private, so it rides the wire rather than the
+    // event stream; assert on the ledger-visible consequence instead.
+    let s2 = {
+        let (tx, mut rx2) = mpsc::unbounded_channel();
+        let sb = InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+        let a = Script(vec![mandate(45), value("A1", 40), value("A2", 25), offer("A1,A2", "A3,A4,A5")]);
+        let b = Script(vec![mandate(45), value("A3", 20), value("A4", 25), value("A5", 40), call("accept", serde_json::json!({}))]);
+        let o = MultiAgentOrchestrator { spec: marktplatz_duel_variant("bargain"), agents: [&a, &b], sandbox: &sb, tx: tx.clone() };
+        let r = o.run("basis-ack-2").await.unwrap();
+        drop(o); drop(sb); drop(tx);
+        while rx2.try_recv().is_ok() {}
+        r
+    };
+    let bb = s2.bargain.unwrap();
+    assert!(bb.deal.is_some(), "a seat that files its basis can still close");
+    assert_eq!(bb.mpr, [Some(0.0), Some(0.0)]);
+}
