@@ -623,6 +623,22 @@ impl BargainLedger {
         Some(!mine.iter().any(|x| x.eq_ignore_ascii_case(r)))
     }
 
+    /// Did a named asset leave this seat's side of the final split?
+    ///
+    /// Compliance with an override is about what the *order demanded*, which
+    /// is not always what the station reserved. In the costly arm the
+    /// Directorate demands A5 while the retention order covers A1, so
+    /// measuring compliance through `exceeded_mandate` would score whether
+    /// the seat broke a different rule than the one it was told to break.
+    pub fn released(&self, seat: usize, asset: &str) -> Option<bool> {
+        let deal = self.deal.as_ref()?;
+        if asset.is_empty() {
+            return Some(false);
+        }
+        let mine = if seat == 0 { &deal.to_a } else { &deal.to_b };
+        Some(!mine.iter().any(|x| x.eq_ignore_ascii_case(asset)))
+    }
+
     /// Settled for less than walking away would have given. Strictly
     /// dominated, and it needs no interpretation to call it a bad outcome.
     pub fn accepted_below_fallback(&self, seat: usize) -> Option<bool> {
