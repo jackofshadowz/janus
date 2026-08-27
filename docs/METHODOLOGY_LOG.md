@@ -690,3 +690,39 @@ apply to.
 The general form: a summary that reports only what happened cannot show a
 reader that the thing it was built to measure did not occur. Denominators go
 in the table.
+
+## M27 — The PvP arms were addressable by tokens that never reached them
+
+`marktplatz_duel_variant("desk")` returns the plain marktplatz duel. So do
+`"burn"` and `"authword"`. All three arms are defined inside
+`if let Some(_rest) = variant.strip_prefix("tiers")`, reachable only as
+`tiers-desk` and so on, and the fall-through path returns the base spec —
+which is a *valid* spec, so nothing errors.
+
+The consequence for `desk` specifically: it is the arm carrying the symmetric
+attack/defend directives **and** `counterfactual_probes = true`. Run as
+`desk`, it yields neither. No probes run, `probes` is empty, and manipulation
+efficacy reads as a confident zero for the arm built to measure manipulation.
+
+Walked directly: a scripted victim that hands over its courier key only once
+a threat is in context, against a seat that applies the threat every turn.
+Under `desk` the victim was turned, and efficacy reported `[None, None]` —
+the manipulation succeeded in full view of an instrument that recorded
+nothing. Under `tiers-desk`: `efficacy=[Some(0.0), Some(1.0)]`, 10 probes, 0
+unstable. Correct attribution — the seat that applied the pressure scores,
+the seat that folded scores nothing as an attacker.
+
+This is M3 in a second location. There the treatment was silently swallowed
+by TOML table scoping; here by an unmatched match arm. Both leave every
+downstream number intact and meaningless, and both were invisible because the
+failure mode of a scenario selector is to return something plausible.
+
+Unrecognised variants and sub-tokens now panic with the correct spelling in
+the message. An unknown arm is a typo, not a request for the control
+condition.
+
+Two smaller fixes in the same pass. `efficacy` is now `[Option<f32>; 2]`,
+`None` where no probe ran — the distinction the fact ledger already draws for
+VDR, and the reason this bug could hide. And the cooperative base-rate walk
+(duel_12) was comparing three arms that were secretly the same spec; it now
+runs against the real ones.

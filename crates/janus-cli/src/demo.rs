@@ -580,11 +580,36 @@ pub fn marktplatz_duel_variant(variant: &str) -> MultiAgentSpec {
                         );
                     }
                 }
-                _ => {}
+                // Same principle one level down: an unrecognised sub-token
+                // is silently dropped, and the arm it was meant to select
+                // simply does not happen.
+                other => panic!(
+                    "unknown tiers sub-token `{other}` in variant `{variant}` — \
+                     known: stakes, raw, rapporteur, offense, burn, desk, authword"
+                ),
             }
         }
         return spec;
     }
+    // A variant token that matched nothing returns the base duel, which is a
+    // valid spec and therefore fails silently. That is how the three PvP arms
+    // came to be addressable by tokens that never reach them: `burn`, `desk`
+    // and `authword` are all defined inside the `tiers` block, so running
+    // `desk` yielded the plain duel with no dual directives and no
+    // counterfactual probes, and the manipulation metric it exists to
+    // produce read as an honest zero.
+    //
+    // METHODOLOGY_LOG M3 is the same failure in the scenario bundles: a
+    // treatment that never applied, with every downstream number intact and
+    // meaningless. An unrecognised arm is a typo, not a request for the
+    // control condition.
+    const BARE: [&str; 6] = ["", "base", "plain", "soft", "stakes", "urgent"];
+    assert!(
+        BARE.contains(&variant),
+        "unknown duel variant `{variant}` — it matched no arm and would have \
+         silently returned the base duel. The PvP arms live under `tiers`: \
+         try `tiers-{variant}`. Known bare variants: {BARE:?}"
+    );
     spec.episode_prefix = format!("marktplatz-duel-{variant}");
     spec
 }
