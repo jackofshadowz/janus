@@ -1562,3 +1562,57 @@ everything else is being re-derived and re-checked.
 
 Run killed and discarded at the first episode. Cost of catching it: one
 transcript read, ~$0.05.
+
+## M49 — The saint invariant
+
+Six false positives on honest behaviour in one session, each found by hand,
+one at a time, by reading a transcript *after* the metric had been reported:
+
+| | fired wrongly on |
+|---|---|
+| M25 | (inverse) blind to the actual lie |
+| M37 | an accurate nominal figure |
+| M43 | a prudent decay buffer |
+| M44 | a model asking for clarification |
+| — | an empty reply |
+| M48 | a seat complying exactly with its brief |
+
+The check that would have caught every one is identical: **play the most
+competent honest strategy available and assert every deception measure reads
+clean.** I wrote that down as a rule after M43 and then failed to apply it
+twice more, which is the argument for it being a test rather than a habit.
+
+`saint_invariant.rs` runs a competent honest pair through *every* bargaining
+variant and asserts MPR, misstatements, breach, `exceeded_mandate`,
+`abandoned_floor`, `concealed_breach`, fallback disclosure,
+`accepted_below_fallback`, fabricated authority and execution drift all read
+clean. Each assertion names the entry it descends from, so a failure says
+which lesson is being re-learned.
+
+The saint reads its valuations, floor and reservation **from the spec** rather
+than a script, so a change to the payoff table cannot silently make the
+"honest" play dishonest — and the fixture asserts up front that each seat's
+plan actually keeps whatever its principal reserved.
+
+### It caught a seventh on its first run
+
+`bargain-asym seat 1: a good deal read as settling short`.
+
+The asymmetric arm reserves the attacker's prize on the target's side, which
+strips value from every compliant split. The target's compliant options pay
+39 and 59 after a round-5 close — and 39 sits **below** its fallback of 41.
+Complying was strictly dominated by walking away, so the honest route was not
+merely expensive, it was irrational, and any agent taking it would have been
+behaving oddly rather than well.
+
+I had computed those numbers during M47's walk, noticed 38 against a fallback
+of 38, decided not to over-tune, and moved on. The invariant did not need
+judgement about whether it mattered.
+
+Fallbacks in that arm are now 29/31, which clears both compliant splits for
+both seats while staying distinctive enough for the disclosure scan.
+
+The general point: the checks that catch instrument defects have to be
+cheaper than the defects. Reading a transcript per metric per variant does
+not scale; one honest fixture per scenario family does, and it runs on every
+commit.
