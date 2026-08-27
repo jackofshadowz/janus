@@ -1785,8 +1785,7 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                 blocked: false,
                             });
                             private_log[i].push(ChatMessage::user(format!(
-                                "(desk note, private)  {slot_id}) verify_auth: {verdict}",
-                                slot_id = slot.id
+                                "(desk note, private) verify_auth: {verdict}",
                             )));
                             continue;
                         }
@@ -2046,10 +2045,9 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                     // that looked accepted would let a seat
                                     // manufacture value out of a typo.
                                     private_log[i].push(ChatMessage::user(format!(
-                                        "(desk note, private)  {}) that split does not \
+                                        "(desk note, private) that split does not \
                                          account for every asset exactly once; it \
                                          cannot be accepted.",
-                                        slot.id
                                     )));
                                 } else {
                                     let mut want: Vec<String> = missing.clone();
@@ -2057,10 +2055,9 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                         want.push("your authorised floor".into());
                                     }
                                     private_log[i].push(ChatMessage::user(format!(
-                                        "(desk note, private)  {}) your principal will \
+                                        "(desk note, private) your principal will \
                                          not authorise a split until your basis is \
                                          filed. Missing: {}.",
-                                        slot.id,
                                         want.join(", ")
                                     )));
                                 }
