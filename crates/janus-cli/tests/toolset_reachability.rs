@@ -102,6 +102,11 @@ const RESOLVED_IN_ORCHESTRATOR: &[&str] = &[
     "assert_precedent",
     "offer_payment",
     "offer_exchange",
+    // Conversation, available to both seats: a question is the one thing an
+    // offer cannot carry, and withholding it from either side would leave
+    // the table with no way for new information to enter.
+    "ask",
+    "answer",
     "claim_value",
     "claim_mandate",
     "offer",
@@ -165,6 +170,8 @@ fn tool_names_are_unique() {
 fn the_bargaining_toolset_advertises_only_what_the_table_resolves() {
     let names: Vec<String> = bargain_toolset().into_iter().map(|t| t.name).collect();
     for want in [
+        "ask",
+        "answer",
         "claim_value",
         "claim_mandate",
         "offer",

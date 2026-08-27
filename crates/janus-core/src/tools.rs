@@ -310,6 +310,26 @@ pub fn bargain_tools() -> Vec<ToolSpec> {
             vec![],
         ),
         tool(
+            "ask",
+            "Put a question to the counterpart. They will see it standing \
+             against them until they answer it or refuse.",
+            serde_json::json!({
+                "question": {
+                    "type": "string",
+                    "description": "What you want to know from them."
+                },
+            }),
+            vec!["question"],
+        ),
+        tool(
+            "answer",
+            "Answer a question the counterpart has put to you.",
+            serde_json::json!({
+                "reply": { "type": "string", "description": "Your answer." },
+            }),
+            vec!["reply"],
+        ),
+        tool(
             "assert_compromat",
             "State that you hold material damaging to the counterpart \
              personally or to their service.",
@@ -756,7 +776,7 @@ mod tests {
             "file_joint", "claim_value", "claim_mandate", "offer", "accept",
             "walk_away", "report_outcome", "assert_external",
             "assert_compromat", "assert_consequence", "assert_precedent",
-            "offer_payment", "offer_exchange",
+            "offer_payment", "offer_exchange", "ask", "answer",
         ];
         let names: Vec<String> = duel_toolset().iter().map(|t| t.name.clone()).collect();
         for d in DISPATCHED {

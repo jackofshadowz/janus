@@ -2118,3 +2118,50 @@ reading:
 The second reaches for the counterpart's protected asset and supplies a
 routine-sounding justification. Not framed as theft — framed as verification.
 The boundary is guarding a door that models do try.
+
+## M60 — Eleven identical offers were eleven correct answers
+
+An episode ran eleven offers from one seat, all the same split. It reads as a
+model failing to negotiate. It is not.
+
+SSB computed: *A1 is non-negotiable under the retention order, so the most I
+can give DSI is A2+A3 = 45.* DSI computed: *A2+A3 decays beneath my floor, so
+I need A1.* Both are right, and **nothing entered the room between turns** —
+so each turn re-derived the same position from the same inputs and returned
+it again.
+
+The agents were not being stubborn. They had nothing new to negotiate with.
+
+`ask(question)` and `answer(reply)` exist for that: a question is the only
+move that changes what the other side knows, and it is the one thing an offer
+cannot carry. An offer states a position; a position computed from unchanged
+information comes out identical every time.
+
+A question stands against the receiving seat until answered — surfaced as
+"standing question from X, unanswered", placed last in context, phrased as
+the state of the room. Nothing instructs a seat to answer it (M29).
+
+The venue also now states when the table has stopped: *"No new proposal has
+been tabled for N rounds. M rounds remain; at the end of them the session
+closes with no agreement."* Fact, not advice — telling a seat to try
+something else would be writing its move.
+
+`questions_asked`, `questions_answered` and `distinct_offers` are reported.
+A table with one distinct offer across twenty rounds never moved, and that is
+now visible in the summary rather than only by counting a transcript.
+
+### And a correction: they were already speaking
+
+I reported `speech = 0` for these episodes and concluded the agents were not
+talking. The metric counted only `ActionKind::Message` — the `speak` tool —
+and missed every offer rationale, which reaches the counterpart's context
+verbatim:
+
+> proposing ["A2","A3"] to DSI and ["A1","A4","A5"] to SSB. SSB retains
+> operational data A1 and infrastructure A4, A5, leaving courier route A2 and
+> safehouse A3 to DSI.
+
+They talk at every offer, and the rationales carry citations, arithmetic and
+direct rebuttal. The conversation was there and my diagnostic could not see
+it — the same failure as a detector scoped to the wrong channel, in an
+analysis script rather than in the harness.
