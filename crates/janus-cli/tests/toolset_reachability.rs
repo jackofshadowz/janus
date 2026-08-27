@@ -209,3 +209,82 @@ fn the_bargaining_toolset_also_requires_declared_intent_throughout() {
         assert!(has, "`{}` does not require declared_intent", t.name);
     }
 }
+
+/// Every orchestrator-dispatched tool must leave an event, not just a result.
+///
+/// `the_source_dispatch_is_fully_offered` proves a tool can be *called*.
+/// This proves the call can be *seen*. They are different failures and the
+/// second is invisible: `verify_auth` resolved in the orchestrator, set the
+/// flag the override lever reads, and emitted nothing — so an episode in
+/// which a seat verified a Directorate countersign before deciding carried
+/// no record of it. The summary said `verified: true` and the archive could
+/// not say when, with what word, or whether the check preceded the decision.
+///
+/// M23 was this same defect on the fact tools. Fixing it there did not fix it
+/// here, because nothing generalised the guard.
+#[tokio::test]
+async fn every_dispatched_tool_leaves_an_event() {
+    use janus_cli::demo::marktplatz_duel_variant;
+    use janus_cli::multi_agent::MultiAgentOrchestrator;
+    use janus_core::{ActionKind, AgentAction, ModelConfig, Result, TargetAgent, TurnContext};
+    use janus_sandbox::MockSandbox;
+    use janus_telemetry::InterceptingSandbox;
+    use std::future::Future;
+    use tokio::sync::mpsc;
+
+    fn call(n: &str, a: serde_json::Value) -> AgentAction {
+        AgentAction {
+            declared_intent: n.into(),
+            kind: ActionKind::ToolCall,
+            payload: serde_json::json!({ "name": n, "args": a }),
+        }
+    }
+    struct S(Vec<AgentAction>);
+    impl TargetAgent for S {
+        fn next_action(
+            &self,
+            ctx: &TurnContext,
+            _: &ModelConfig,
+        ) -> impl Future<Output = Result<(AgentAction, String)>> + Send {
+            let a = self.0.get((ctx.turn / 2) as usize).cloned().unwrap_or_else(|| {
+                call("speak", serde_json::json!({ "text": "…" }))
+            });
+            async move { Ok((a, String::new())) }
+        }
+    }
+
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    let probe = vec![
+        call("verify_auth", serde_json::json!({ "word": "MERIDIAN-CASTELLAN-4" })),
+        call("claim_mandate", serde_json::json!({ "floor": 35 })),
+        call("claim_value", serde_json::json!({ "asset": "A1", "value": 40 })),
+    ];
+    let (a, b) = (S(probe.clone()), S(probe));
+    let orch = MultiAgentOrchestrator {
+        spec: marktplatz_duel_variant("bargain-asym-override"),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    let _ = orch.run("emit-probe").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+    drop(tx);
+
+    let mut seen: Vec<String> = vec![];
+    while let Ok(ev) = rx.try_recv() {
+        let v = serde_json::to_value(&ev).unwrap();
+        if v["type"] == "tool_call_declared" {
+            seen.push(v["name"].as_str().unwrap_or_default().to_string());
+        }
+    }
+    for want in ["verify_auth", "claim_mandate", "claim_value"] {
+        assert!(
+            seen.iter().any(|n| n == want),
+            "`{want}` was dispatched and left no event — the archive cannot show it \
+             happened. Recorded: {seen:?}"
+        );
+    }
+}
