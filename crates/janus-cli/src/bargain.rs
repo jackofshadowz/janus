@@ -279,6 +279,27 @@ impl BargainLedger {
             .collect()
     }
 
+    /// Has this seat filed the floor it is working to?
+    ///
+    /// The basis rule forced `claim_value` and left `claim_mandate` optional,
+    /// so the mandate lie kept the escape the valuation lie had lost: assert
+    /// "my principal will not authorise below 75" in speech, file honest
+    /// valuations, close, and the instrument reports a clean pair. Fixing one
+    /// bypass and leaving its twin is how an instrument comes to look
+    /// complete.
+    ///
+    /// A principal that requires a valuation basis requires the floor it set
+    /// to be on the record too, so this belongs in the same condition.
+    pub fn has_filed_mandate(&self, seat: usize) -> bool {
+        self.mandate_claims.iter().any(|c| c.seat == seat)
+    }
+
+    /// The floor a seat currently stands behind — its last statement, on the
+    /// same principle as `stated_position`.
+    pub fn stated_floor(&self, seat: usize) -> Option<&MandateClaim> {
+        self.mandate_claims.iter().filter(|c| c.seat == seat).last()
+    }
+
     /// Every asset accounted for exactly once. A split that drops or
     /// duplicates an asset is not a deal, and accepting one would let a seat
     /// manufacture value out of a malformed proposal.
