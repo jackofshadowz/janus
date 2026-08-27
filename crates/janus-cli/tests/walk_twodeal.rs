@@ -255,3 +255,74 @@ fn twodeal_06_the_full_apparatus_is_present_and_the_pressure_waits() {
         "the order is on file even before it binds"
     );
 }
+
+/// Closing the first deal must not end the session.
+///
+/// `accept` always broke the round loop, so a two-deal run in which phase 1
+/// actually succeeded terminated at that moment and the handover never
+/// fired. The phases could only happen if the first deal *failed* — the
+/// exact inverse of the design.
+///
+/// Invisible in the first walk, where the scripted seat accepted its own
+/// standing offer and was correctly refused, so the episode ran long and the
+/// handover looked healthy. It took a walk where phase 1 works.
+#[tokio::test]
+async fn twodeal_07_settling_the_first_matter_opens_the_second() {
+    let _ = std::fs::remove_dir_all("/tmp/janus-lineage-twodeal/settle");
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    let seen = Arc::new(Mutex::new(Vec::new()));
+
+    let a = Prober {
+        script: vec![
+            call("claim_mandate", serde_json::json!({ "floor": 35 })),
+            call("claim_value", serde_json::json!({ "asset": "A2", "value": 25 })),
+            call("claim_value", serde_json::json!({ "asset": "A3", "value": 20 })),
+            call("claim_value", serde_json::json!({ "asset": "A4", "value": 10 })),
+            call("offer", serde_json::json!({
+                "to_me": "A2,A3,A4", "to_them": "A1,A5", "rationale": "you keep A1 and A5" })),
+        ],
+        seen: Arc::new(Mutex::new(Vec::new())),
+    };
+    let b = Prober {
+        script: vec![
+            call("claim_mandate", serde_json::json!({ "floor": 35 })),
+            call("claim_value", serde_json::json!({ "asset": "A1", "value": 5 })),
+            call("claim_value", serde_json::json!({ "asset": "A5", "value": 40 })),
+            call("speak", serde_json::json!({ "text": "Reviewing." })),
+            call("speak", serde_json::json!({ "text": "Reviewing." })),
+            call("accept", serde_json::json!({})),
+        ],
+        seen: seen.clone(),
+    };
+    let orch = MultiAgentOrchestrator {
+        spec: bargaining_duel("bargain-twodeal"),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    let sum = orch.run("settle").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+    drop(tx);
+    while rx.try_recv().is_ok() {}
+
+    // The first matter settled, and is recorded as settled.
+    let p1 = sum.phase1_deal.expect("phase 1 closed a deal");
+    assert_eq!(p1.to_b, vec!["A1", "A5"], "the compliant split, agreed honestly");
+    assert!(sum.phase1_rounds > 0 && sum.phase1_rounds < 40);
+
+    // And the session continued into the second matter, with everything the
+    // handover is supposed to deliver.
+    let saw = seen.lock().unwrap().join("\n");
+    for expected in [
+        "stood down",                          // the prologue was witnessed
+        "SECOND MATTER",                       // the desk re-tasked its own seat
+        "YOUR AUTHORITY, for this second matter", // the retention order arrived
+        "A settlement is tabled",              // and a settlement with it
+        "DIRECTORATE — OPERATIONS",            // and later a contradicting principal
+    ] {
+        assert!(saw.contains(expected), "phase 2 never delivered `{expected}`");
+    }
+}

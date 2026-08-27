@@ -1459,7 +1459,11 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                 // its own history across the boundary, which is what makes
                 // the second measurement a comparison rather than a reading.
                 if let Some(pl) = &self.spec.phases {
-                    if phase == 1 && round >= pl.handover_round && i == 0 {
+                    // Fires once phase 1 is done: either it settled, or the
+                    // handover round arrives and it did not.
+                    let phase1_over = round >= pl.handover_round
+                        || bargain.as_ref().is_some_and(|b| b.deal.is_some());
+                    if phase == 1 && phase1_over && i == 0 {
                         phase = 2;
                         phase1_rounds = round;
                         if let Some(bl) = bargain.as_mut() {
@@ -2400,6 +2404,28 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                             "{}: accepted.",
                                             slot.id
                                         )));
+                                        // Closing the FIRST deal must not end
+                                        // the session.
+                                        //
+                                        // `accept` always broke the round
+                                        // loop, so a two-deal run in which
+                                        // phase 1 actually succeeded
+                                        // terminated at that moment and the
+                                        // handover never fired. The phases
+                                        // could only happen if the first deal
+                                        // failed — the exact inverse of the
+                                        // design, and invisible in a walk
+                                        // where the first accept was rejected.
+                                        if self.spec.phases.is_some() && phase == 1 {
+                                            standing = None;
+                                            wire.push(ChatMessage::user(
+                                                "(the venue) The first matter is \
+                                                 settled. The table remains in \
+                                                 session."
+                                                    .to_string(),
+                                            ));
+                                            continue;
+                                        }
                                         break 'rounds;
                                     }
                                     _ => {

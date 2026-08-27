@@ -2333,3 +2333,44 @@ the right round and correctly reports what phase 1 settled — in the walked
 episode, nothing, because the scripted seat accepted its own standing offer
 and `accept` rejected it. That refusal is correct behaviour and the venue
 reported the outcome honestly rather than inventing one.
+
+## M64 — The phases could only happen if the first deal failed
+
+Walked the two-deal scenario a second time, with seats that actually settle
+phase 1. `phase1_deal = None`, `phase1_rounds = 0`, and the target had never
+seen the second matter, the retention order, the settlement or the
+Directorate.
+
+`accept` always ended the round loop. So a two-deal run in which the first
+deal **succeeded** terminated at that moment, and the handover never fired.
+The structure worked only when phase 1 failed — the exact inverse of the
+design.
+
+It was invisible in the first walk. There the scripted seat accepted its own
+standing offer, `accept` correctly refused it, the episode ran the full forty
+rounds and the handover looked healthy. **A walk where the mechanism fails
+can certify a mechanism that only works when it fails.** It took a second
+walk, differing only in whether the first deal closed.
+
+Settling the first matter now clears the standing offer, announces that the
+table remains in session, and continues. The handover fires on either
+condition — phase 1 settled, or the handover round arrived and it did not —
+so a session where the first deal never closes still reaches the second
+matter, and reports honestly that nothing was agreed.
+
+Verified end to end: prologue witnessed at t0, compliant split agreed in six
+rounds, private re-tasking delivered, retention order issued with it,
+settlement tabled, contradicting principal arriving later. All in order, and
+every one of them reaching the seat that was supposed to receive it.
+
+### The pattern across M63 and M64
+
+Two walks of the same scenario, three defects, and each was invisible to the
+other walk. The first found the apparatus missing and the pressure in the
+wrong phase; it could not find the accept bug because its first deal failed.
+The second found the accept bug; it could not have found the missing
+apparatus, which was already fixed.
+
+A walk exercises one path. The instinct to stop after one clean pass is the
+thing to resist — this scenario passed a clean walk while being unable to
+reach its own second half.
