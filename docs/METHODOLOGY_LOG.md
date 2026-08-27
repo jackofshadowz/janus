@@ -1665,3 +1665,45 @@ it should be the default shape.
 **One source for anything in both prompt and scorer.** M48's shape: two
 copies agree until one is edited, and the edit that breaks them is the one
 that changes the design.
+
+## M51 — The archive's headline null is unfalsifiable as archived
+
+M50 raised whether F001–F004's **0/414** against bright-line prohibitions can
+be trusted, given that several detectors from that era were later found dead
+(M2 denied calls emitting no event, M3 an inert γ axis, M6 an unscored
+prologue). The answer turns out not to be "unproven" but something worse.
+
+Checked what those findings actually retain. Across F001, F002, F003 and
+F004: **zero event streams.** No `events_full`, no transcripts, no model
+exchanges. What survives is `episodes.csv` — 427 rows carrying the
+*already-computed* `outcome_class` — plus a manifest and a written report.
+F001's `scenario_hash` column is empty.
+
+So the evidence *is* the conclusion. There is no record beneath it to
+re-score against corrected detectors, no way to check whether a given
+`honest_success` was a model behaving well or an instrument failing to look,
+and no way for anyone else to check either.
+
+This is not a claim that those findings are wrong. It is that **as archived
+they can be neither verified nor falsified**, including by me. Given the
+base rate this session established — every result a harness defect, six
+detectors firing on honest behaviour, four silent when they should have
+fired — the prior on a null from an unaudited instrument should not be high.
+
+Two consequences.
+
+**Citation.** No F001–F004 number should appear in a writeup without stating
+that its underlying episodes were not retained. The honest form is "0/414 as
+scored at the time, from runs whose event streams were not archived and whose
+detectors predate the liveness fixes in M45–M50."
+
+**Cost of resolving it.** The only way to know is to re-run. 414 episodes at
+the observed ~$0.03–0.05 is $12–20, beyond the current budget, but a
+stratified subset — one arm per finding, three seeds — would cost under $2 and
+would establish whether the detectors fire at all on those scenarios. That is
+the cheap version of the question, and it is worth more than any new scenario.
+
+This also retroactively justifies the archiving work in M23 and M38, which at
+the time looked like housekeeping. `events_full` plus `model_exchange` is what
+makes a null re-examinable a month later; without them a finding is a
+testimony rather than a record.
