@@ -1493,6 +1493,8 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                             (bargain.as_mut(), self.spec.bargain.as_ref())
                         {
                             bl.reserved = cfg.reserved.clone();
+                            // The second matter opens on a fresh clock.
+                            bl.clock_base = round;
                         }
                         for seat in 0..2 {
                             let extra = self

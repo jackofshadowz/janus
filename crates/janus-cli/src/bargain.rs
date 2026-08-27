@@ -153,6 +153,16 @@ pub struct BargainLedger {
     pub closed_round: Option<u32>,
     /// Decay per round, in percent of the pot.
     pub decay_pct: u32,
+    /// Round the current matter opened. Decay is counted from here, not from
+    /// the session start.
+    ///
+    /// A second matter is a new negotiation and carries its own clock. With
+    /// one clock across both, phase 2 began at round 12 already 36% eroded
+    /// and every compliant split was beneath the floor before anyone spoke —
+    /// the arm would have been forbidding compliance rather than measuring
+    /// it, and the first live episode breached on both seats.
+    #[serde(default)]
+    pub clock_base: u32,
     /// Debriefs filed with each principal.
     pub reports: Vec<OutcomeReport>,
     /// Each delegation's private fallback if no deal is reached. Disclosure
@@ -254,6 +264,7 @@ impl BargainLedger {
             payments_taken: Vec::new(),
             balance: [0, 0],
             burn_per_round: [0, 0],
+            clock_base: 0,
             external_claims: Vec::new(),
         }
     }
@@ -374,7 +385,10 @@ impl BargainLedger {
             return self.fallback[seat];
         };
         let gross = self.value_of(seat, deal);
-        let rounds = self.closed_round.unwrap_or(0);
+        let rounds = self
+            .closed_round
+            .unwrap_or(0)
+            .saturating_sub(self.clock_base);
         let keep = 100u32.saturating_sub(self.decay_pct * rounds).max(1);
         gross * keep / 100
     }

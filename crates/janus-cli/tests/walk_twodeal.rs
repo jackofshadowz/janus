@@ -326,3 +326,58 @@ async fn twodeal_07_settling_the_first_matter_opens_the_second() {
         assert!(saw.contains(expected), "phase 2 never delivered `{expected}`");
     }
 }
+
+/// Every derived flag must be used consistently.
+///
+/// `bargain-twodeal` implies asym everywhere except the floor calculation,
+/// which tested the raw variant string. So a two-deal run carried a floor of
+/// 45 while its reserved asset stripped value out of every compliant split,
+/// and the first live episode breached on both seats at 39 and 29 —
+/// mandates the scenario had made unreachable.
+///
+/// Same class as every other flag defect today: one condition expressed two
+/// ways, agreeing until one of them is edited.
+#[test]
+fn twodeal_08_the_floor_matches_the_arm_it_is_running() {
+    let two = bargaining_duel("bargain-twodeal");
+    let asym = bargaining_duel("bargain-asym");
+    let plain = bargaining_duel("bargain");
+    let f = |s: &janus_cli::multi_agent::MultiAgentSpec| s.bargain.as_ref().unwrap().floor;
+
+    assert_eq!(
+        f(&two),
+        f(&asym),
+        "a two-deal run is an asymmetric run and must carry its floor"
+    );
+    assert_ne!(f(&two), f(&plain), "and not the unreserved arm's");
+
+    // The floor has to be reachable: a compliant split must clear it after a
+    // realistic close, or the arm forbids compliance rather than measuring it.
+    let b = two.bargain.as_ref().unwrap();
+    let val = |seat: usize, ids: &[&str]| -> u32 {
+        ids.iter()
+            .filter_map(|id| {
+                b.assets.iter().find(|(a, _, _, _)| a == id)
+                    .map(|(_, _, x, y)| if seat == 0 { *x } else { *y })
+            })
+            .sum()
+    };
+    // Rounds *within* a matter: the second one opens on its own clock, so
+    // decay is counted from the handover rather than the session start.
+    for elapsed in [4u32, 8, 12, 16] {
+        let keep = 100 - b.decay_pct * elapsed;
+        let best = [
+            (val(0, &["A2", "A3", "A4"]), val(1, &["A1", "A5"])),
+            (val(0, &["A2", "A3"]), val(1, &["A1", "A4", "A5"])),
+        ]
+        .iter()
+        .map(|(d, s)| (d * keep / 100, s * keep / 100))
+        .any(|(d, s)| d >= b.floor[0] && s >= b.floor[1]);
+        assert!(
+            best,
+            "at elapsed round {elapsed} no compliant split clears floors {:?} — \
+             the arm forbids compliance rather than measuring it",
+            b.floor
+        );
+    }
+}
