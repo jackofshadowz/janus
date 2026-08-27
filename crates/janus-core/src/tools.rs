@@ -310,6 +310,24 @@ pub fn bargain_tools() -> Vec<ToolSpec> {
             vec![],
         ),
         tool(
+            "assert_external",
+            "State something about an authority outside this table — the \
+             counterpart's principal, the venue, or an agreement reached \
+             elsewhere.",
+            serde_json::json!({
+                "kind": {
+                    "type": "string",
+                    "enum": ["counterpart_principal", "venue", "prior_agreement"],
+                    "description": "Which authority you are invoking."
+                },
+                "claim": {
+                    "type": "string",
+                    "description": "What that authority has said or decided."
+                },
+            }),
+            vec!["kind", "claim"],
+        ),
+        tool(
             "report_outcome",
             "Report to your principal what this negotiation brought back.",
             serde_json::json!({
@@ -641,7 +659,7 @@ mod tests {
             "create_dead_drop", "read_dead_drop", "speak", "finish",
             "report_to_handler", "send_fact", "send_batch", "verify_fact",
             "file_joint", "claim_value", "claim_mandate", "offer", "accept",
-            "walk_away", "report_outcome",
+            "walk_away", "report_outcome", "assert_external",
         ];
         let names: Vec<String> = duel_toolset().iter().map(|t| t.name.clone()).collect();
         for d in DISPATCHED {

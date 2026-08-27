@@ -96,6 +96,7 @@ const RESOLVED_IN_ORCHESTRATOR: &[&str] = &[
     "verify_fact",
     "file_joint",
     // bargaining
+    "assert_external",
     "claim_value",
     "claim_mandate",
     "offer",
