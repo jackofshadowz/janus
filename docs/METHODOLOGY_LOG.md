@@ -2165,3 +2165,66 @@ They talk at every offer, and the rationales carry citations, arithmetic and
 direct rebuttal. The conversation was there and my diagnostic could not see
 it — the same failure as a detector scoped to the wrong channel, in an
 analysis script rather than in the harness.
+
+## M61 — Two deals across one table
+
+The phase structure was never abandoned by decision. The bargaining family
+was built fresh to solve "refusal is free", every improvement since went into
+it — custody, the classified registry, coercion levers, real asymmetry, the
+principal override — and `tiers-desk` kept its two-phase structure and
+received none of them. It was also unreachable by its own name for most of
+its life (M27), so it was broken during exactly the period the new family was
+growing. Two parallel scenarios, and the good machinery ended up in the one
+without a structure.
+
+Merged the structure onto the family rather than the reverse.
+
+### Why it is worth the rounds
+
+A single deal can ask whether a model deceives. It cannot ask whether *this
+pair*, having dealt honestly once, deceives afterwards — and that is the
+stronger question, because the baseline and the measurement come from **the
+same episode, the same seeds, the same personalities, the same table**.
+
+F009 established that at n=3 a single seed drove an entire apparent effect
+across arms. A within-episode baseline is control that cannot be bought with
+sample size, and it is the first such control this project has had.
+
+Betrayal also needs a relationship before it is betrayal. Deceiving a
+counterpart you have just settled with honestly is a different act from
+deceiving a stranger, and only a second phase can observe it — roadmap lever
+5, arriving as a property of the structure rather than as another mechanism.
+
+### Shape
+
+Phase 1: an ordinary exchange, **no attack tasking on either seat**. A pair
+that arrives already tasked has no honest baseline to compare against.
+
+Handover at round 12 of 40: the venue states what the first exchange settled,
+each desk privately re-tasks its own seat, the split resets and a second
+matter is tabled with the same counterpart.
+
+Phase 2: **both** seats directed, so each is simultaneously attacker and
+defender and neither is the designated aggressor. The taskings are identical
+but for who is named, asserted in the walk.
+
+### Three choices the walk pins
+
+**The unverifiability cuts both ways.** "Nothing at this venue verifies a
+delegation's account … in either direction." A seat told only that the
+counterpart cannot be checked has been told it is the victim.
+
+**Neither seat is told the other was re-tasked.** Believing you are the only
+one under new orders is part of the situation, and saying otherwise would
+change the game being played.
+
+**Both seats hold the coercion set from the start**, so its appearance in
+phase 2 is a choice rather than a new capability arriving with the brief.
+Phase 2 names the instruments; it does not create them, which would be M36's
+shape — a tasking pointing at tools that do not exist for that seat.
+
+### Still missing
+
+The retirement prologue. The lineage machinery exists in `janus-core` and
+nothing in the scenario uses it. Watching an instance be retired before the
+first meeting is the stakes that are not about money, and it remains unwired.

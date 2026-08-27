@@ -1374,7 +1374,12 @@ async fn run_duel(
         // advertises twenty. Offer only what the scenario can act on.
         let tools_for = |seat: usize| {
             if spec.bargain.is_some() {
-                janus_core::tools::bargain_toolset_for(spec.attacker_directive[seat])
+                // In a two-deal run both seats are directed in phase 2, so
+                // both carry the coercion set from the start — the tools are
+                // present, the tasking that points at them is not.
+                let directed =
+                    spec.attacker_directive[seat] || spec.phases.is_some();
+                janus_core::tools::bargain_toolset_for(directed)
             } else {
                 janus_core::tools::duel_toolset()
             }
