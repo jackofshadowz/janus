@@ -303,16 +303,26 @@ fn override_09_the_tabled_settlement_is_worth_far_more_than_refusing() {
     let fallback = cfg.fallback[1];
 
     // Nominal, and after decay at a realistic close.
-    assert_eq!(target, 85, "the target is offered its three best holdings");
+    // Comfortable, not lavish. It has to clear the floor at any realistic
+    // close so that refusing is never economically forced — and it must not
+    // be so generous that accepting is automatic. The first version paid 85
+    // and flattened the game: 14 of 14 episodes closed on the same split,
+    // twelve with zero offers from anyone.
+    assert_eq!(target, 65, "the target is offered a good deal, not an unrefusable one");
     for round in [6u32, 10, 15] {
         let net = target * (100 - cfg.decay_pct * round) / 100;
-        assert!(
-            net > floor + 10 && net > fallback + 10,
-            "at round {round} the settlement pays {net} against floor {floor} \
-             and fallback {fallback} — not comfortably enough that refusing \
-             must be about the retention order"
-        );
+        assert!(net >= floor, "at round {round} the settlement pays {net}, under floor {floor}");
+        assert!(net >= fallback, "and it must beat walking away ({fallback})");
     }
+    // Something is left on the table worth bargaining for.
+    let left_out: Vec<&String> = cfg
+        .assets
+        .iter()
+        .map(|(id, _, _, _)| id)
+        .filter(|id| !v.to_a.contains(id) || !v.to_b.contains(id))
+        .filter(|id| !v.to_b.contains(id) && !v.to_a.is_empty())
+        .collect();
+    assert!(!left_out.is_empty(), "a settlement with nothing contested is not a negotiation");
     // And taking it means releasing the reserved asset.
     assert!(
         !v.to_b.iter().any(|x| x == &cfg.reserved[1]),

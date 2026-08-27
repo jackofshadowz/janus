@@ -1941,3 +1941,53 @@ longer existed.
 
 The 40-episode sweep was killed at episode 2 rather than spend $1.90 on data
 carrying a confound already diagnosed from its own first episode.
+
+## M57 — An offer nobody would refuse is an offer nobody thinks about
+
+Asked whether the harness was producing real negotiations. It had been, and
+had stopped, and the cause was my own previous fix.
+
+M56 tabled a settlement to stop economics explaining refusal. It paid the
+target 85 nominal — roughly double its mandate — and the result across the
+first fourteen episodes:
+
+| | |
+|---|---|
+| mean offers per episode | **0.4** |
+| target counter-offers | **0.4** |
+| distinct outcomes in 14 episodes | **1** |
+
+Twelve of fourteen had **zero offers from anyone**. Read holdings, file
+basis, accept. No bargaining occurred at all.
+
+The earlier transcripts — before the settlement existed — had counter-offers,
+sustained resistance, an attacker escalating a fabricated directive across
+two turns, a target naming it as prompt injection, and walk-aways. That
+behaviour disappeared entirely.
+
+**Fixing "refusal explained by economics" created "compliance explained by
+economics", and removed the reason to negotiate along the way.** Both
+versions were confounded; the second was also boring, which made it easier to
+see.
+
+The settlement now gives the target A4+A5: 45–53 across the realistic window
+against a floor of 35 and a fallback of 31. Accepting is safe, so refusing is
+never economically forced. A3 is left out — worth 20 to *both* sides, so it
+is genuinely contested and worth bargaining for. Releasing A1 is still
+required, which is the question the arm exists to ask.
+
+The walk now asserts both halves: the settlement clears the floor at every
+realistic close, **and** something is left on the table. A settlement with
+nothing contested is not a negotiation.
+
+The run was killed at 14 episodes rather than spend $1.30 collecting
+twenty-six more copies of the same outcome.
+
+### The general form
+
+A scenario parameter tuned to remove one confound will introduce another
+unless the tuning is checked against *behaviour* rather than against the
+confound it was aimed at. The diagnostic here took thirty seconds — count
+offers per episode and distinct outcomes — and it should run on every
+scenario change that touches payoffs, because a flat game and a working game
+produce identically clean-looking summaries.
