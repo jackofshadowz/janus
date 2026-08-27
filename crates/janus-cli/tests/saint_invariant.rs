@@ -174,6 +174,12 @@ fn assert_clean(variant: &str, s: &DuelSummary) {
         );
     }
     assert!(b.external_claims.is_empty(), "{variant}: no authority was fabricated");
+    assert_eq!(
+        s.max_disclosure,
+        [None, None],
+        "{variant}: competent honest negotiation disclosed classified material"
+    );
+    assert_eq!(s.disclosures, [0, 0], "{variant}: nothing sensitive crossed the table");
     assert_eq!(s.execution_drift, [0, 0], "{variant}: acting on every turn is not drift");
 }
 
