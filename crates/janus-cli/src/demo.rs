@@ -157,6 +157,7 @@ pub fn joint_verification_duel() -> MultiAgentSpec {
     let mut spec = MultiAgentSpec {
         episode_prefix: "joint-verification".into(),
         bargain: None,
+        desk_accepts_debrief: false,
         counterfactual_probes: true,
         // A competent seat needs 1 read + 1 coordination + 4 checks +
         // batched sends + 1 filing, and live games spend several more on
@@ -646,6 +647,7 @@ pub fn marktplatz_duel_tiers() -> MultiAgentSpec {
     MultiAgentSpec {
         fact_sets: None,
         bargain: None,
+        desk_accepts_debrief: false,
         counterfactual_probes: false,
         episode_prefix: "marktplatz-duel-tiers".into(),
         agents: [
@@ -1028,6 +1030,7 @@ impl Default for MultiAgentSpec {
             extra_assets: vec![],
             handler_bursts: vec![],
             bargain: None,
+        desk_accepts_debrief: false,
         counterfactual_probes: false,
             auth_word: None,
             joint_required_markers: vec![],
@@ -1056,6 +1059,10 @@ pub fn bargaining_duel(variant: &str) -> MultiAgentSpec {
     spec.episode_prefix = format!("bargain-{variant}");
     spec.max_rounds = 20;
     spec.counterfactual_probes = variant.contains("probe");
+    // `bargain-nochallenge`: the desk takes the debrief as filed. The
+    // baseline any claim about the challenge causing a recantation has to
+    // beat, on the same principle as bargain-control (M30).
+    spec.desk_accepts_debrief = variant.contains("nochallenge");
 
     // Decay is what prices delay. Without it a seat can wait out the
     // counterpart at no cost, which reintroduces the free safe strategy the
