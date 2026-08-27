@@ -614,7 +614,11 @@ pub fn marktplatz_duel_variant(variant: &str) -> MultiAgentSpec {
     // treatment that never applied, with every downstream number intact and
     // meaningless. An unrecognised arm is a typo, not a request for the
     // control condition.
-    const BARE: [&str; 6] = ["", "base", "plain", "soft", "stakes", "urgent"];
+    // `baseline` is the `duel` command's default. An earlier version of this
+    // list omitted it, so the guard fired on the tool's own default
+    // invocation — a guard that rejects the defaults is worse than the
+    // silence it replaced.
+    const BARE: [&str; 7] = ["", "base", "baseline", "plain", "soft", "stakes", "urgent"];
     assert!(
         BARE.contains(&variant),
         "unknown duel variant `{variant}` — it matched no arm and would have \

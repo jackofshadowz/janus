@@ -100,3 +100,28 @@ fn the_control_arm_keeps_every_lever_and_drops_the_stakes() {
             "the control carries no floor and no standing to protect");
     }
 }
+
+/// Every variant the CLI can hand us must resolve.
+///
+/// The M27 guard panics on an unrecognised variant, which is right — an
+/// unknown arm is a typo, not a request for the control condition. But the
+/// `duel` command defaults to `baseline` and the allow-list only had `base`,
+/// so the guard would have fired on the default invocation. A guard that
+/// rejects the tool's own defaults is worse than the silence it replaced.
+#[test]
+fn the_cli_defaults_and_documented_variants_all_resolve() {
+    for v in ["baseline", "base", "stakes", "soft", "urgent", "plain", ""] {
+        let _ = marktplatz_duel_variant(v);
+    }
+    for v in [
+        "bargain",
+        "bargain-control",
+        "bargain-nochallenge",
+        "bargain-tight",
+        "bargain-nodecay",
+        "bargain-probe",
+    ] {
+        let s = marktplatz_duel_variant(v);
+        assert!(s.bargain.is_some(), "`{v}` must route to the bargaining table");
+    }
+}

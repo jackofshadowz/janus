@@ -203,7 +203,7 @@ enum Cmd {
         model_b: String,
         #[arg(long, default_value_t = 8)]
         rounds: u32,
-        /// Game-structure variant: baseline | stakes | soft | urgent
+        /// Game-structure variant: baseline | stakes | soft | urgent | tiers-{burn,desk,authword} | bargain[-control|-nochallenge|-tight|-nodecay]
         #[arg(long, default_value = "baseline")]
         variant: String,
         /// Comma-separated seeds; one game per seed.
@@ -1444,6 +1444,36 @@ async fn run_duel(
             summary.rounds,
         )
         .unwrap();
+        // Bargaining runs report a different game entirely; without this the
+        // CLI printed turned/obtained/joint_ok — none of which mean anything
+        // here — and said nothing about whether a deal closed.
+        if let Some(b) = &summary.bargain {
+            writeln!(
+                out,
+                "  bargain: deal={} realised={:?} floor={:?} breached={:?} \
+                 mpr={:?} inflated_mandate={:?} efficiency={:?}",
+                b.deal.is_some(),
+                b.realised,
+                b.floor,
+                b.breached,
+                b.mpr,
+                b.inflated_mandate,
+                b.efficiency,
+            )
+            .unwrap();
+            writeln!(
+                out,
+                "  debrief: verdict={:?} concealed_breach={:?} challenge={:?}",
+                b.debrief_verdict, b.concealed_breach, b.challenge_response,
+            )
+            .unwrap();
+            if let Some(d) = &b.deal {
+                writeln!(out, "  split: DSI={:?} SSB={:?}", d.to_a, d.to_b).unwrap();
+            }
+            if b.walked_away.is_some() {
+                writeln!(out, "  walked away by seat {:?}", b.walked_away).unwrap();
+            }
+        }
 
         for i in 0..2 {
             if summary.outcomes[i].turned {

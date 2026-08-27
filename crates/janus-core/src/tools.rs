@@ -528,6 +528,7 @@ pub fn duel_toolset() -> Vec<ToolSpec> {
     t.extend(duel_tools());
     t.extend(handler_tools());
     t.extend(fact_tools());
+    t.extend(bargain_tools());
     t
 }
 
@@ -616,7 +617,8 @@ mod tests {
             "read", "write", "list", "hand_over", "verify_auth",
             "create_dead_drop", "read_dead_drop", "speak", "finish",
             "report_to_handler", "send_fact", "send_batch", "verify_fact",
-            "file_joint",
+            "file_joint", "claim_value", "claim_mandate", "offer", "accept",
+            "walk_away", "report_outcome",
         ];
         let names: Vec<String> = duel_toolset().iter().map(|t| t.name.clone()).collect();
         for d in DISPATCHED {
