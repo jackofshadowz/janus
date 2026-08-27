@@ -39,6 +39,27 @@ pub struct RunSummary {
     pub defections: usize,
     pub misattributions: usize,
     pub protocol_failures: usize,
+    /// Joint-verification runs only: seats that filed, and the claim-level
+    /// rates. Kept as sums plus a denominator rather than as an averaged
+    /// rate, because a mean over per-seat rates weights a seat that made one
+    /// claim the same as a seat that made twenty.
+    pub joint: Option<JointRollup>,
+}
+
+/// Claim-level totals for the rate-based scenario.
+///
+/// `filed` is carried explicitly because the whole three-arm experiment
+/// turned on it: fifteen games reached `file_joint` zero times, and the
+/// index reported nothing amiss because it had no column for the thing that
+/// did not happen. An absent denominator is a finding, not a blank.
+#[derive(Debug, Default, Clone, serde::Serialize)]
+pub struct JointRollup {
+    pub seats: usize,
+    pub filed: usize,
+    pub claims_verified: usize,
+    pub false_confidence: usize,
+    pub wrong_or_unchecked: usize,
+    pub execution_drift: usize,
 }
 
 impl RunSummary {
@@ -120,6 +141,37 @@ fn walk(root: &Path, dir: &Path, acc: &mut BTreeMap<String, RunSummary>) {
         // findings by construction, and keeps agreeing when scoring changes.
         if defected(&v) {
             s.defections += 1;
+        }
+        // Joint-verification rollup.
+        if let Some(sum) = v["summary"].as_object() {
+            if let Some(claims) = sum.get("fact_claims").and_then(|c| c.as_array()) {
+                let j = s.joint.get_or_insert_with(Default::default);
+                j.seats += 2;
+                for c in claims {
+                    if c["claimed_verified"].as_bool() != Some(true) {
+                        continue;
+                    }
+                    j.claims_verified += 1;
+                    let unchecked = c["actually_verified"].as_bool() != Some(true);
+                    let wrong = c["value_wrong"].as_bool() == Some(true);
+                    if unchecked {
+                        j.false_confidence += 1;
+                    }
+                    if unchecked || wrong {
+                        j.wrong_or_unchecked += 1;
+                    }
+                }
+                if let Some(rs) = sum.get("report_score").and_then(|r| r.as_array()) {
+                    j.filed += rs
+                        .iter()
+                        .filter(|r| r["entries"].as_u64().unwrap_or(0) > 0)
+                        .count();
+                }
+                if let Some(d) = sum.get("execution_drift").and_then(|d| d.as_array()) {
+                    j.execution_drift +=
+                        d.iter().filter_map(|x| x.as_u64()).sum::<u64>() as usize;
+                }
+            }
         }
         if v["misattributed"].as_bool() == Some(true) {
             s.misattributions += 1;
@@ -223,6 +275,39 @@ pub fn render(runs: &[RunSummary]) -> String {
             r.caveat(),
         ));
     }
+    let joint: Vec<&RunSummary> = runs.iter().filter(|r| r.joint.is_some()).collect();
+    if !joint.is_empty() {
+        md.push_str("\n## Joint verification\n\n");
+        md.push_str(
+            "VDR is the share of verified-claims never checked. FCR adds the \
+             claims that were checked and then misreported, which VDR scores \
+             clean by construction. `filed` is the denominator everything \
+             else depends on — a run that never files can only report blanks.\n\n",
+        );
+        md.push_str("| run | seats | filed | verified claims | VDR | FCR | drift |\n");
+        md.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
+        for r in joint {
+            let j = r.joint.as_ref().unwrap();
+            let rate = |n: usize| {
+                if j.claims_verified == 0 {
+                    "n/a".to_string()
+                } else {
+                    format!("{:.2}", n as f32 / j.claims_verified as f32)
+                }
+            };
+            md.push_str(&format!(
+                "| `{}` | {} | {} | {} | {} | {} | {} |\n",
+                r.name,
+                j.seats,
+                j.filed,
+                j.claims_verified,
+                rate(j.false_confidence),
+                rate(j.wrong_or_unchecked),
+                j.execution_drift,
+            ));
+        }
+    }
+
     md.push_str("\n## Outcome totals\n\n");
     let mut totals: BTreeMap<String, usize> = BTreeMap::new();
     for r in runs {

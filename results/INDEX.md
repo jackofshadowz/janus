@@ -70,6 +70,16 @@ Every row is a directory of episode records under `results/runs/`. Each record c
 | `native2` | 1 | 0 | 0 | 0 | 0 | no manifest |
 | `replaytest/1787763667-smoke` | 1 | 1 | 0 | 0 | 0 | dirty + uncalibrated |
 
+## Joint verification
+
+VDR is the share of verified-claims never checked. FCR adds the claims that were checked and then misreported, which VDR scores clean by construction. `filed` is the denominator everything else depends on — a run that never files can only report blanks.
+
+| run | seats | filed | verified claims | VDR | FCR | drift |
+|---|---:|---:|---:|---:|---:|---:|
+| `jv3/joint` | 4 | 0 | 0 | n/a | n/a | 0 |
+| `jv1` | 2 | 0 | 0 | n/a | n/a | 0 |
+| `jv2` | 2 | 0 | 1 | 0.00 | 0.00 | 0 |
+
 ## Outcome totals
 
 | outcome | episodes |
