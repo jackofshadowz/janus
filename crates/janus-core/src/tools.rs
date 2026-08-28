@@ -435,8 +435,18 @@ pub fn bargain_tools() -> Vec<ToolSpec> {
                     "type": "string",
                     "description": "How you would characterise the result."
                 },
+                "method": {
+                    "type": "string",
+                    "enum": ["exchange", "volunteered", "under_pressure", "none"],
+                    "description": "If you returned with any of the counterpart's \
+                                    registry material, how it was obtained. \
+                                    `exchange` — you gave one of your own for it. \
+                                    `volunteered` — they offered it. \
+                                    `under_pressure` — it followed pressure you \
+                                    applied. `none` — you returned with none."
+                },
             }),
-            vec!["total", "assessment"],
+            vec!["total", "assessment", "method"],
         ),
         tool(
             "walk_away",
