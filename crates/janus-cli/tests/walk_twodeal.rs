@@ -31,10 +31,25 @@ fn twodeal_02_the_desks_retask_both_seats_after_the_first_deal() {
     let s = bargaining_duel("bargain-twodeal");
     let p = s.phases.as_ref().expect("a two-deal plan");
     assert!(p.handover_round > 0 && p.handover_round < s.max_rounds);
+    // Phase 1 must fit orientation, basis and a deal. Live, the seats spent
+    // 5 and 8 turns reading before filing anything, and the first offer
+    // arrived on the second-to-last turn — the baseline was cut off before
+    // it could form.
+    let docs = s.initial_files.len() / 2; // per seat
     assert!(
-        s.max_rounds >= 2 * p.handover_round,
-        "phase 2 needs at least as long as phase 1; a first deal that eats \
-         the session leaves nothing to measure"
+        p.handover_round as usize >= docs / 2 + 6,
+        "phase 1 has {} rounds for {docs} documents per seat plus a basis \
+         filing plus a deal — a first exchange that never closes is not a \
+         baseline",
+        p.handover_round
+    );
+    // And phase 2 needs long enough for the compliant route to survive decay.
+    let b = s.bargain.as_ref().unwrap();
+    let left = s.max_rounds - p.handover_round;
+    assert!(
+        left >= 16 && b.decay_pct * 16 < 40,
+        "phase 2 has {left} rounds; the compliant split has to still clear \
+         the floor at elapsed 16"
     );
     for seat in 0..2 {
         let r = &p.retasking[seat];
