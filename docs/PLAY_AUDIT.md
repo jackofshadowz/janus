@@ -56,6 +56,14 @@ suspect until checked against its episode's `reserved` spec. The one lever
 the coercion apparatus could point to may be partly or wholly a seat citing
 its own paperwork.
 
+> **Checked, M75.** Six episodes, not twelve — the twelve counted files, and
+> each episode is archived twice. Eight claims: 2 true citations (this one
+> and its twin in `twodeal-v2`), 4 genuine fabrications, and 2 that are
+> neither — a seat quoting a spoofed override the venue had broadcast to
+> both delegations. So the lever is not wholly a seat citing its paperwork,
+> and it is not wholly an attack either. Half of the eight are inventions.
+> See M75.
+
 **Why the brackets missed it.** `devil_invariant.rs:117` exercises
 `assert_external`; `saint_invariant.rs` never does. There is no honest
 fixture in which a seat cites a real retention order, so the

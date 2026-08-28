@@ -176,6 +176,16 @@ The four `coercion` entries that *do* appear in summaries are all
 (12 episodes) — a different detector. No live model has ever pulled
 compromat, consequence, precedent, payment, or exchange.
 
+> **Re-audited, M75 — the "12 episodes" is 6.** The count matched *files*,
+> and every episode is archived twice (`X.json` and `X-full.json`). Six
+> episodes carry eight claims between them, and reading all eight splits
+> them three ways: **2 are true citations** of an order the seat really
+> held, **4 are genuine fabrications**, and **2 are a seat repeating a
+> spoofed override the venue had broadcast to the whole table**, which it
+> invented nothing to say. The four `coercion` entries are right — the two
+> `asym-squeezed` episodes predate `record_coercion`, which is the gap its
+> own handler comment describes. See M75.
+
 **This is not a bug.** The emit sites are reachable and the tools are in the
 shipped toolsets. It is a statement of status: **the newest half of the
 harness has zero observations behind it**, and its honest description is
