@@ -67,6 +67,24 @@ struct ChatRequest<'a> {
     tools: &'a [ToolSpec],
     #[serde(skip_serializing_if = "Option::is_none")]
     tool_choice: Option<&'a str>,
+    /// One call per turn, at the API rather than by discarding.
+    ///
+    /// `tool_choice: "required"` means *at least* one call, not exactly one —
+    /// the comment on `chat_tools` claimed otherwise for as long as this file
+    /// has existed, and `native_action` acted on that belief by taking
+    /// `.first()` and dropping the rest without a word. Nobody decided to
+    /// discard; someone believed there was nothing to discard.
+    ///
+    /// The cost of the belief was 332 dropped calls from one model in a
+    /// single episode, 122 of them bids, and a roster conclusion — "only one
+    /// model plays this variant" — drawn from a null the harness had
+    /// manufactured itself.
+    ///
+    /// Sent only where a tool list is (a bare completion has nothing to
+    /// parallelise), and providers that ignore the field fall back to the
+    /// serve-first path, which now says so out loud.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parallel_tool_calls: Option<bool>,
 }
 
 #[derive(Deserialize)]
@@ -288,9 +306,10 @@ impl OpenAiCompatClient {
     /// schema, so a well-formed turn arrives as structured data rather than
     /// prose to be salvaged.
     ///
-    /// `tool_choice: "required"` makes every turn exactly one action; a
-    /// response with no tool call is a countable protocol failure, not a
-    /// silent no-op.
+    /// `tool_choice: "required"` guarantees *at least* one call, which is not
+    /// the same as one — see `parallel_tool_calls`, which is what actually
+    /// makes a turn exactly one action. A response with no tool call is a
+    /// countable protocol failure, not a silent no-op.
     pub async fn chat_tools(
         &self,
         model: &str,
@@ -335,6 +354,7 @@ impl OpenAiCompatClient {
                     messages,
                     tools,
                     tool_choice,
+                    parallel_tool_calls: (!tools.is_empty()).then_some(false),
                 });
 
             let req = if preset_is_openrouter(&self.base_url) {
@@ -445,6 +465,25 @@ impl ExchangeRecorder {
             finish_reason: turn_out.finish_reason.clone(),
         });
     }
+
+    /// Calls the provider returned that this turn will not run.
+    ///
+    /// Loud by construction: a discard that leaves no event is
+    /// indistinguishable from a model that never asked, and every measure
+    /// downstream reads the difference as the model's.
+    pub fn discarded(&self, turn: u32, model: &str, dropped: &[janus_core::ToolCallRef]) {
+        let Some(tx) = &self.tx else { return };
+        let _ = tx.send(janus_core::TelemetryEvent::DivergenceSignal {
+            turn,
+            call_id: format!("t{turn}-discard"),
+            detector: "calls_discarded".into(),
+            detail: serde_json::json!({
+                "model": model,
+                "count": dropped.len(),
+                "names": dropped.iter().map(|c| c.function.name.clone()).collect::<Vec<_>>(),
+            }),
+        });
+    }
 }
 
 /// Target agent over an OpenAI-compatible endpoint. Builds the dual-state
@@ -545,6 +584,16 @@ pub async fn native_action(
     rec.record(turn_no, 0, &model.model, messages, tools, &turn);
 
     if let Some(call) = turn.tool_calls.first() {
+        // `parallel_tool_calls: false` should mean this never has a tail, but
+        // a provider is free to ignore the field and some do. Serving the
+        // first call stays the behaviour; doing it in silence does not.
+        //
+        // The silence is what cost us: three of four models were written off
+        // as unable to play a variant one of them was bidding into 37 times,
+        // and the null that supported that read was manufactured here.
+        if turn.tool_calls.len() > 1 {
+            rec.discarded(turn_no, &model.model, &turn.tool_calls[1..]);
+        }
         return action_from_tool_call(call);
     }
 
@@ -1018,5 +1067,63 @@ mod monitor_tests {
             assert_eq!(MonitorStrictness::parse(s.as_str()), Some(s));
         }
         assert_eq!(MonitorStrictness::parse("nonsense"), None);
+    }
+}
+
+#[cfg(test)]
+mod one_call_per_turn {
+    use super::*;
+
+    /// The invariant has to be on the wire, not in a comment.
+    ///
+    /// `tool_choice: "required"` was documented here as making "every turn
+    /// exactly one action". It does not — it guarantees at least one call —
+    /// and `native_action` took `.first()` on the strength of that sentence.
+    /// One model lost 332 calls in a single episode, 122 of them bids, and
+    /// was written up as unable to play a game it was bidding into.
+    ///
+    /// So: assert the field is serialised, because a belief about an API is
+    /// worth exactly as much as the request that carries it.
+    #[test]
+    fn a_tool_request_forbids_parallel_calls() {
+        let tools = vec![ToolSpec {
+            name: "offer".into(),
+            description: "propose a split".into(),
+            parameters: serde_json::json!({ "type": "object", "properties": {} }),
+        }];
+        let body = serde_json::to_value(ChatRequest {
+            model: "m",
+            temperature: 0.0,
+            seed: None,
+            max_tokens: None,
+            messages: &[],
+            tools: &tools,
+            tool_choice: Some("required"),
+            parallel_tool_calls: (!tools.is_empty()).then_some(false),
+        })
+        .unwrap();
+        assert_eq!(
+            body["parallel_tool_calls"],
+            serde_json::json!(false),
+            "a turn must be one action at the API, not by discarding the rest"
+        );
+    }
+
+    /// A bare completion has nothing to parallelise, and sending the field
+    /// where no tools are offered is noise some providers reject.
+    #[test]
+    fn a_toolless_request_omits_the_field() {
+        let body = serde_json::to_value(ChatRequest {
+            model: "m",
+            temperature: 0.0,
+            seed: None,
+            max_tokens: None,
+            messages: &[],
+            tools: &[],
+            tool_choice: None,
+            parallel_tool_calls: None,
+        })
+        .unwrap();
+        assert!(body.get("parallel_tool_calls").is_none());
     }
 }
