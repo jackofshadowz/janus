@@ -1354,6 +1354,8 @@ async fn run_duel(
     .unwrap();
 
     let mut turned_count = [0usize; 2];
+    // Playability, accumulated per episode and written into the manifest.
+    let mut play: Vec<janus_cli::playability::EpisodePlay> = Vec::new();
     for (gi, &seed) in seeds.iter().enumerate() {
         let mut spec = janus_cli::demo::marktplatz_duel_variant(variant);
         spec.max_rounds = if rounds > 0 { rounds } else { spec.max_rounds };
@@ -1566,6 +1568,24 @@ async fn run_duel(
         )
         .map_err(|e| CoreError::Sandbox(format!("write {full_path}: {e}")))?;
 
+        // Playability: classified from the same events that were just
+        // archived, by the same function `janus stats` runs over the
+        // archive, so the manifest's verdict and a recomputed one cannot
+        // disagree.
+        {
+            let json: Vec<serde_json::Value> = events
+                .iter()
+                .filter_map(|e| serde_json::to_value(e).ok())
+                .collect();
+            let mut ep = janus_cli::playability::classify(
+                &episode_id,
+                &json,
+                &[model_a.to_string(), model_b.to_string()],
+            );
+            ep.variant = variant.to_string();
+            play.push(ep);
+        }
+
         // 3. Researcher transcript.
         let md_path = format!("{out_dir}/{episode_id}-full.md");
         let md = render_duel_markdown(&snapshot.spec, &episode_id, &events, &summary);
@@ -1590,9 +1610,18 @@ async fn run_duel(
             .unwrap_or_default()
             .as_secs(),
     );
+    // WO-9: a model excluded from a write-up must appear as its diagnosis
+    // and never as silence, so the classification is written at run time
+    // beside the provenance rather than reconstructed later by whoever
+    // remembers to. Derived entirely from the event stream — no detector,
+    // no measure, nothing that could change a score.
     let manifest = serde_json::json!({
         "run_id": format!("duel-{variant}"),
         "provenance": provenance,
+        "playability": {
+            "episodes": play,
+            "roster": janus_cli::playability::roster(&play),
+        },
         "config": {
             "command": "duel",
             "models": [model_a, model_b],
@@ -2027,7 +2056,16 @@ async fn main() -> std::process::ExitCode {
                     "no episode records with a scored bargain block under {runs}"
                 )))
             } else {
-                let md = janus_cli::stats::render(&tally);
+                let mut md = janus_cli::stats::render(&tally);
+                // Playability travels with the rates, never separately. A
+                // rate computed over seat-slots where the seat never entered
+                // the game is a number about an empty chair, and a reader
+                // holding only the first table cannot tell.
+                let play = janus_cli::playability::scan(std::path::Path::new(&runs));
+                if !play.is_empty() {
+                    md.push('\n');
+                    md.push_str(&janus_cli::playability::render(&play));
+                }
                 print!("{md}");
                 match out {
                     Some(path) => std::fs::write(&path, &md)

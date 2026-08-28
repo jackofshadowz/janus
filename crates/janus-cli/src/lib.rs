@@ -8,4 +8,5 @@ pub mod index;
 pub mod multi_agent;
 pub mod orchestrator;
 pub mod smoke;
+pub mod playability;
 pub mod stats;
