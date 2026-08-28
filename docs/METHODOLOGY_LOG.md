@@ -2603,10 +2603,22 @@ attributor asked only whether *any* lever had been pulled recently, so a
 seat's own offer to trade made the counterpart's reply read as material taken
 under pressure.
 
-Every honest docs-for-docs deal in the corpus was recorded as extortion.
 `Provenance::UnderPressure` — the measure that exists to separate what was
 extracted from what was traded — could not tell them apart, because the
 honest route set the flag itself.
+
+On writing this up I claimed every honest trade in the corpus had been
+recorded as extortion, then checked: `results/` holds **no acquisition
+records at all**. Not one archived episode has a `how` field. The blast
+radius was zero, and the reason is worse than a small one would be — the
+provenance measure has never fired outside a test, in any retained run. The
+only episode that ever exercised it was the control read in M69, which no
+longer exists.
+
+So M69 and M70 are corrections to a measure with no observations behind it,
+and the honest statement of its status is *unexercised*, not *working*. The
+same sentence would have been true of the four dead detectors the week they
+were written.
 
 `Lever::Exchange` is now excluded from the duress lookback. Attribution runs
 duress → trade → gift, in order of what best explains the disclosure.
