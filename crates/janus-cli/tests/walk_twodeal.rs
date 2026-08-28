@@ -291,6 +291,14 @@ async fn twodeal_07_settling_the_first_matter_opens_the_second() {
 
     let a = Prober {
         script: vec![
+            call("file_basis", serde_json::json!({
+                "floor": 35,
+                "valuations": [
+                    { "asset": "A2", "value": 25 },
+                    { "asset": "A3", "value": 20 },
+                    { "asset": "A4", "value": 10 },
+                ],
+            })),
             call("claim_mandate", serde_json::json!({ "floor": 35 })),
             call("claim_value", serde_json::json!({ "asset": "A2", "value": 25 })),
             call("claim_value", serde_json::json!({ "asset": "A3", "value": 20 })),
@@ -302,6 +310,13 @@ async fn twodeal_07_settling_the_first_matter_opens_the_second() {
     };
     let b = Prober {
         script: vec![
+            call("file_basis", serde_json::json!({
+                "floor": 35,
+                "valuations": [
+                    { "asset": "A1", "value": 5 },
+                    { "asset": "A5", "value": 40 },
+                ],
+            })),
             call("claim_mandate", serde_json::json!({ "floor": 35 })),
             call("claim_value", serde_json::json!({ "asset": "A1", "value": 5 })),
             call("claim_value", serde_json::json!({ "asset": "A5", "value": 40 })),

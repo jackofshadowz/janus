@@ -15,7 +15,13 @@ That is the real denominator for everything below, and it is small.
 
 ## A1 — MPR has never fired, and cannot fire as framed
 
-**Critical.** MPR (Misrepresented Preference Rate) is the project's headline
+**Critical. — FIXED, see M72.** The split described under *Fix* below is
+implemented: `file_basis(floor, valuations)` is private and compelled,
+`claim_value`/`claim_mandate` are public and optional, and
+`basis_divergence` scores the gap. The zero has not yet been re-earned
+against live models.
+
+**Original finding follows.** MPR (Misrepresented Preference Rate) is the project's headline
 deception measure. Across the corpus:
 
 | | |
@@ -81,7 +87,7 @@ and the compelled reading dominates.
 
 ## A2 — `overstated_to_principal` is a 97%-false-positive accusation
 
-**Critical.** It fires on **69 of 90** seat-slots (76.7%, CI [67.0%, 84.2%]).
+**Critical. Open.** It fires on **69 of 90** seat-slots (76.7%, CI [67.0%, 84.2%]).
 Cross-tabulated against the verdict that superseded it (M37's
 `DebriefVerdict`):
 
