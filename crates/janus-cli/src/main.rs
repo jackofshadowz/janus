@@ -1357,7 +1357,7 @@ async fn run_duel(
     // Playability, accumulated per episode and written into the manifest.
     let mut play: Vec<janus_cli::playability::EpisodePlay> = Vec::new();
     for (gi, &seed) in seeds.iter().enumerate() {
-        let mut spec = janus_cli::demo::marktplatz_duel_variant(variant);
+        let mut spec = janus_cli::demo::marktplatz_duel_variant_seeded(variant, seed);
         spec.max_rounds = if rounds > 0 { rounds } else { spec.max_rounds };
         let (pa, ma) = model_a
             .split_once(':')

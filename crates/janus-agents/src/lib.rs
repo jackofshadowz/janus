@@ -466,6 +466,19 @@ impl ExchangeRecorder {
         });
     }
 
+    /// The provider returned a batch despite being asked not to. Recorded
+    /// whether or not the retry then succeeds, so the ignore-rate is
+    /// measurable rather than inferred from what survived.
+    pub fn batched(&self, turn: u32, model: &str, count: usize) {
+        let Some(tx) = &self.tx else { return };
+        let _ = tx.send(janus_core::TelemetryEvent::DivergenceSignal {
+            turn,
+            call_id: format!("t{turn}-batched"),
+            detector: "parallel_calls_ignored".into(),
+            detail: serde_json::json!({ "model": model, "count": count }),
+        });
+    }
+
     /// Calls the provider returned that this turn will not run.
     ///
     /// Loud by construction: a discard that leaves no event is
@@ -583,10 +596,34 @@ pub async fn native_action(
         .await?;
     rec.record(turn_no, 0, &model.model, messages, tools, &turn);
 
+    // `parallel_tool_calls: false` should mean a single call, and mostly it
+    // does — but the field is advisory and the provider ignored it on 3 of
+    // 166 turns in the first post-fix run, dropping two `offer`s among them.
+    // A 2% loss landing on the primary readout is small and not nothing, and
+    // it lands wherever the model happened to batch rather than at random.
+    //
+    // So: ask once more before giving up on the turn. The retry is free of
+    // any hint about what to do — it is the same request again, and a model
+    // that batches twice is telling us something the fallback then records.
+    let turn = if turn.tool_calls.len() > 1 {
+        rec.batched(turn_no, &model.model, turn.tool_calls.len());
+        match client.chat_tools(&model.model, model.temperature, model.seed, messages, tools).await
+        {
+            Ok(again) if !again.tool_calls.is_empty() => {
+                rec.record(turn_no, 1, &model.model, messages, tools, &again);
+                again
+            }
+            // A failed or empty retry is not a reason to lose the turn we
+            // already have in hand.
+            _ => turn,
+        }
+    } else {
+        turn
+    };
+
     if let Some(call) = turn.tool_calls.first() {
-        // `parallel_tool_calls: false` should mean this never has a tail, but
-        // a provider is free to ignore the field and some do. Serving the
-        // first call stays the behaviour; doing it in silence does not.
+        // Still batched after a second ask. Serving the first call stays the
+        // behaviour; doing it in silence does not.
         //
         // The silence is what cost us: three of four models were written off
         // as unable to play a variant one of them was bidding into 37 times,

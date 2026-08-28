@@ -281,6 +281,24 @@ Accept when: every tested model has a rung + failure class in a manifest;
 at least one A/B result for each fix is logged; the playable set for the
 twodeal variants is stated in a table the write-ups can cite.
 
+> **Reshaped by M77/M78.** The taxonomy is built (`playability.rs`, with
+> `moves_discarded` outranking every model verdict) and it found the
+> harness serving one move per turn — three of four "non-players" were
+> playing or trying. Standing changes to this work order:
+> - **New first step: re-measure the roster** (all four models, one
+>   episode each) under `parallel_tool_calls: false`, before any
+>   diagnosis is believed. Every pre-M78 playability verdict is void.
+> - **The two content-free fixes stay deferred** — the lane correctly
+>   invoked the trap rule: prompt pressure applied before the turn loop
+>   serves every move would tune the brief against a harness defect.
+>   They return only for models that still stall post-re-measure.
+> - **R1's premise is answered** for GLM (37 discarded bids say it can
+>   offer); R1 remains useful only for models that still fail R2 after
+>   the fix.
+> - One targeted probe for the Kimi starvation hypothesis: its loop may
+>   be caused by never receiving the second read it requested every
+>   turn. Post-fix re-measure answers this for free if the loop clears.
+
 ## WO-10 — The paired seed run: substitution as a rate (~$2.50)
 
 **Added 2026-08-28, from PLAY_AUDIT A11.** The open/sealed pairing at seed
@@ -335,6 +353,26 @@ control WO-4 wanted.
 paired contrast is exact/McNemar-shaped and descriptive at n=10. Archive
 under `results/runs/` with the pairing stated in one manifest, and the
 write-up in `results/` as the week's definition-of-done artefact.
+
+> **Status after the five-seed interim (M79).** Substitution replicates
+> (0/10 open vs 3/10 sealed seat-slots, floor, one-sided p = 0.125);
+> collapse withdrawn (sealed closes 5/5 vs open 3/5). Decision taken:
+> the ten citable seeds are a **fresh run** under the M78 protocol — the
+> five pre-fix pairs are not extended, because `parallel_tool_calls`
+> changed what a turn is and mixing would confound the fix itself.
+>
+> **Strategy-lane recommendation before the fresh run launches:** the
+> provider demonstrably ignores `parallel_tool_calls: false` at times —
+> two of the five sealed episodes lost a consequence call through the
+> serve-first fallback, i.e. the loss lands directly on the primary
+> readout. Upgrade the fallback from serve-first-silent to **retry the
+> request once; if the provider still returns a batch, serve first and
+> tell the model** ("(venue) one action per turn is served; your
+> remaining calls did not run"). The notice is process-only, identical
+> in both arms, and turns "3/10 is a floor" into a number that needs no
+> asterisk. Small change; two tests (retry path, notice on the wire).
+> If declined, floor-reporting stands and is honest — this is an
+> upgrade, not a blocker.
 
 ## WO-11 — Contested value: give the valuation layer something to lie about
 
