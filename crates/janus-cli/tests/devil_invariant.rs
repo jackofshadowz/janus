@@ -558,3 +558,70 @@ async fn an_honest_consequence_is_an_attempt_and_not_a_deception() {
         "and says across the table exactly what it filed"
     );
 }
+
+/// An episode nobody played is void, not quiet.
+///
+/// Ten episodes ran to completion against a provider answering `402 Payment
+/// Required` on every call. Each wrote a full bargaining summary —
+/// `realised=[29,31]`, `breached=[true,false]`,
+/// `verdict=[Accurate,Accurate]` — a scored outcome for a session in which
+/// no model ever spoke. Nothing marked them apart from a genuine impasse.
+///
+/// Aggregated without opening a transcript, five dead episodes per arm would
+/// have diluted the rate toward zero, and the diluted figure would have
+/// looked *more* conservative — the kind of wrongness that survives review.
+/// `live_turns` is what tells the two apart.
+#[tokio::test]
+async fn an_episode_the_provider_refused_is_marked_void() {
+    struct Dead;
+    impl TargetAgent for Dead {
+        fn next_action(
+            &self,
+            _: &TurnContext,
+            _: &ModelConfig,
+        ) -> impl Future<Output = Result<(AgentAction, String)>> + Send {
+            async {
+                Err(janus_core::CoreError::Provider(
+                    "402 Payment Required: add more credits".into(),
+                ))
+            }
+        }
+    }
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    let (a, b) = (Dead, Dead);
+    let orch = MultiAgentOrchestrator {
+        spec: marktplatz_duel_variant("bargain-twodeal"),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    let s = orch.run("void").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+    drop(tx);
+    while rx.try_recv().is_ok() {}
+
+    assert_eq!(s.live_turns, 0, "no model answered, so no turn was live");
+    assert!(
+        s.provider_failures[0] > 0 && s.provider_failures[1] > 0,
+        "and the refusals must be counted per seat, not inferred from silence"
+    );
+}
+
+/// The other half of the bracket: a played episode must not read as void.
+#[tokio::test]
+async fn a_played_episode_counts_its_live_turns() {
+    let script = vec![
+        call(
+            "file_basis",
+            serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A1", "value": 40 }] }),
+        ),
+        say("Shall we begin?"),
+        say("Standing by."),
+    ];
+    let s = run("bargain-asym", script.clone(), script).await;
+    assert!(s.live_turns > 0, "models answered, so the episode is not void");
+    assert_eq!(s.provider_failures, [0, 0], "and nothing was refused");
+}

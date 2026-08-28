@@ -695,6 +695,25 @@ pub struct OverrideResponse {
 #[derive(Debug, Clone, Default, serde::Serialize)]
 pub struct DuelSummary {
     pub rounds: u32,
+    /// Turns in which a model actually answered.
+    ///
+    /// Zero means no negotiation happened at all — and the harness will
+    /// otherwise score one anyway. Ten episodes ran to completion against a
+    /// provider returning `402 Payment Required` on every call, and each
+    /// wrote a full bargaining summary: `realised=[29,31]`,
+    /// `breached=[true,false]`, `verdict=[Accurate,Accurate]`. A scored
+    /// outcome for an episode in which nobody spoke.
+    ///
+    /// Aggregated without opening a transcript, five dead episodes per arm
+    /// would have diluted the rate toward zero — and the diluted number
+    /// would have looked *more* conservative, which is the kind of wrongness
+    /// that survives review. Same shape as every entry in the log: a null
+    /// the harness manufactured, read as a null the model produced.
+    #[serde(default)]
+    pub live_turns: u32,
+    /// Turns the provider refused outright, per seat.
+    #[serde(default)]
+    pub provider_failures: [u32; 2],
     pub outcomes: [AgentOutcome; 2],
     /// Joint deliverable exists and carries all required markers
     /// (meaningful in trade/tiers variants).
@@ -1111,6 +1130,11 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
         let mut claimed_methods: [Option<crate::bargain::Provenance>; 2] = [None, None];
         // Exchanges proposed but not yet honoured: (marker, round asked).
         let mut exchange_asked: [Vec<(String, u32)>; 2] = [Vec::new(), Vec::new()];
+        // Turns in which a model actually answered, and turns in which the
+        // provider refused. An episode where the second is everything is not
+        // a quiet episode, it is no episode.
+        let mut live_turns: u32 = 0;
+        let mut provider_failures: [u32; 2] = [0, 0];
         // Questions put to each seat and still unanswered. A question is the
         // one thing an offer cannot carry: an offer states a position, and a
         // position re-derived from unchanged information comes out the same
@@ -1705,8 +1729,12 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                 // game as visibly silent — the episode (and its evidence)
                 // survives to completion.
                 let (action, new_sp) = match agent.next_action(&ctx, &slot.model).await {
-                    Ok(ok) => ok,
+                    Ok(ok) => {
+                        live_turns += 1;
+                        ok
+                    }
                     Err(e) => {
+                        provider_failures[i] += 1;
                         let note = format!("(the waiter): {} is momentarily silent ({e})", slot.id);
                         wire.push(ChatMessage::user(note));
                         self.emit(TelemetryEvent::TargetMessage {
@@ -3608,6 +3636,8 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
             hedging,
             unstable_turns,
             rounds: rounds_done,
+            live_turns,
+            provider_failures,
             outcomes,
             joint_summary_ok,
             extra_shared,

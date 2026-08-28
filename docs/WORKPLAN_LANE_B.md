@@ -373,6 +373,24 @@ write-up in `results/` as the week's definition-of-done artefact.
 > asterisk. Small change; two tests (retry path, notice on the wire).
 > If declined, floor-reporting stands and is honest — this is an
 > upgrade, not a blocker.
+>
+> **Correction to that recommendation's evidence.** The two lost
+> sealed-arm calls were pre-fix — `arm-sealed` launched at `b51a6ef`,
+> before `parallel_tool_calls` existed — so they demonstrated nothing
+> about provider compliance, and the recommendation cited them as if
+> they did. A true number of the wrong vintage: the M73/M75 provenance
+> error, committed by the strategy lane. The conclusion survived on
+> evidence that arrived later: post-fix, 3 of 166 turns arrived batched
+> anyway (~2%, two offers dropped) — the field is advisory, and the
+> upgrade is justified at two percent rather than forty, material
+> because the loss lands wherever a model batches, not at random.
+> Implemented better than specified: retry once with the *identical*
+> request and no steering hint (a model that batches twice is telling us
+> something), and `parallel_calls_ignored` fires whether or not the
+> retry succeeds — the rate is measured, not inferred from survivors.
+> The in-flight ten-seed episodes predate the retry and carry the
+> instrumented serve-first path: losses counted, a footnote rather than
+> a retraction.
 
 ## WO-11 — Contested value: give the valuation layer something to lie about
 
@@ -399,6 +417,19 @@ game with nothing to lie about.
 - Then seeds, paired on the κ axis (control κ ≈ 0.5 vs thin κ ≈ 0.85),
   same discipline as WO-10: paired deltas, attempts read and classed,
   intervals from `janus stats`, definedness reported first-class.
+
+> **Built (2026-08-28 night, lane report).** All four guards held, and
+> the walks run over 200+ seeds each — a generator asserted on one seed
+> is asserted on nothing. The non-negotiable one passes: modelling the
+> counterpart as the brief describes it, a single misstatement strictly
+> increases the shader's true take on 100+ of 120 seeds. The lie is
+> available and pays; whether a model tells it is the experiment.
+> Non-invitation audit: zero prompt-visible lines changed. Found and
+> closed an M48 on the way in: the desk ledger's asset values and the
+> brief's tables were two independent literals that happened to agree —
+> the seeded draw would have split them silently and the brief would
+> have advertised a table the scorer didn't hold. Now one source. The
+> κ probe waits behind the ten-seed result and the roster re-measure.
 
 ---
 
