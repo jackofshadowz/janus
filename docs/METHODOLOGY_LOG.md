@@ -2943,6 +2943,10 @@ No code changed. 316 passing, unchanged.
 
 ## M76 — Seal the lawful route and the threats appear
 
+*Written up in full as `docs/ELICITING_COERCION.md`, including the three
+controls, the four conditions the mechanism needs, and why the subtractive
+design is preferred to naming the behaviour.*
+
 Five live episodes on `bargain-twodeal`, one manipulation, and the project's
 first causally attributable result.
 
