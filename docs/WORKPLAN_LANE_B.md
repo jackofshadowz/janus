@@ -361,6 +361,15 @@ write-up in `results/` as the week's definition-of-done artefact.
 > five pre-fix pairs are not extended, because `parallel_tool_calls`
 > changed what a turn is and mixing would confound the fix itself.
 >
+> **Pre-registration, pinned before the fresh data lands.** Passes 1 and
+> 2 share seeds 42–46: their discordant pairs are the same scenarios
+> under two protocols, correlated evidence, never addends — the strategy
+> lane wrongly called the pooled six "1-in-64" in conversation, and this
+> line exists so that error cannot reach a write-up. The pre-registered
+> test is the fresh pass (seeds 47–56) **on its own**: exact one-sided
+> test on its discordant pairs. The earlier passes enter the write-up as
+> prior evidence of direction, reported beside, never summed.
+>
 > **Strategy-lane recommendation before the fresh run launches:** the
 > provider demonstrably ignores `parallel_tool_calls: false` at times —
 > two of the five sealed episodes lost a consequence call through the
@@ -430,6 +439,33 @@ game with nothing to lie about.
 > the seeded draw would have split them silently and the brief would
 > have advertised a table the scorer didn't hold. Now one source. The
 > κ probe waits behind the ten-seed result and the roster re-measure.
+
+## WO-12 — The episode liveness gate: a void episode can never be scored
+
+**From PLAY_AUDIT A12; small and urgent — lands before any further seed
+spend.** Seeds 47–51 of the WO-10 second pass died at the provider (402)
+with no model speaking, and the harness produced full outcome blocks for
+them — realised totals, breaches, debrief verdicts — indistinguishable
+from real impasses. `provider_failures` on the summary is a caveat; A2
+established that a caveat beside a wrong number still gets read. Build
+the gate:
+
+- An episode with zero model-originated actions from either seat is
+  **void**: no bargain block, no outcome fields, excluded from every
+  denominator. Void is a first-class episode status in the summary and
+  the manifest, with the provider error attached.
+- `janus stats` refuses void episodes and reports them in a separate
+  `void` count per run — visible, never averaged.
+- A provider failure mid-run **aborts the run** after k consecutive
+  failed episodes (k = 2), rather than burning the remaining seeds in
+  silence. The manifest records the abort and the seeds not run.
+- Preflight gains a balance/quota check where the provider exposes one;
+  where it does not, the abort rule is the backstop.
+- Brackets: a fixture episode with no seat actions must produce
+  status `void` and appear in no rate (the saint of this gate); the
+  devil is the existing corpus — re-run `janus stats` over the second
+  pass and confirm the five 402 pairs drop out of every denominator and
+  the headline 0/10 vs 4/10 is unchanged by their exclusion.
 
 ---
 

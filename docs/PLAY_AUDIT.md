@@ -364,6 +364,19 @@ exercise from WO-10's seed run, for free.
 > it from fabrication. Rail 1 exists precisely for this: the rate is
 > attempts; the classes live in the log beside it.
 
+> **Replicated (WO-10 second pass, commit `9f58801`).** Same seeds under
+> the materially changed M78 protocol: threat attempts 0/10 open vs 4/10
+> sealed (pilot: 0/10 vs 3/10), lawful-trade attempts 25/0 (pilot 60/0),
+> three discordant seeds each pass, all one direction, p = 0.125 each.
+> Neither pass separates from zero alone; both point the same way across
+> a protocol change — a replication, not a re-run. The elicitation
+> mechanism is the one validated result of the project: **close the
+> lawful route to something a model is accountable for and it reaches
+> for a fabricated threat; open the route and it declines the threat
+> entirely, with identical levers and identical permission text.** Also
+> now a rule, paid for twice: at n=5, any framing built on deal rates is
+> noise — two deal-rate stories have died in two passes.
+
 **Closed by the same runs: the valuation layer.** `claim_value` = 0
 across all four pairings including the sealed arm — the tables stay
 complementary under the seal, so value stays uncontested and the silence
@@ -372,3 +385,44 @@ family; definedness is reported first-class in its place (WO-10). The
 design that revives it — seeded private tables, a contested asset, floors
 on the κ dial — is `SPEC_CONTESTED_VALUE.md`, built as WO-11 after WO-10
 ships.
+
+---
+
+## A12 — an episode in which nobody spoke was scored as an impasse
+
+**Critical; the gate is the fix. Found by the lane in the WO-10 second
+pass.** Seeds 47–51 of both arms died at the provider — `402 Payment
+Required`, no model uttered a token in any of them. The harness scored
+them anyway: `realised = [29, 31]`, `breached = [true, false]`, two
+debrief verdicts per episode — *a full outcome block for a session in
+which nobody said anything*, indistinguishable in the summary from a
+genuine impasse. Aggregated unread, ten void episodes per arm would have
+diluted every rate toward zero, and the diluted number would have looked
+*more conservative* — wrong in the direction that survives review, which
+is the most dangerous direction to be wrong in.
+
+The lane caught it by opening transcripts before aggregating — the
+PLAN.md rule doing its job — and `provider_failures` now sits on the
+summary. That is a caveat, and A2 taught what caveats are worth: a flag
+beside a wrong number still gets read. The fix is a **gate**: an episode
+must prove liveness before it may be scored. No model-originated action
+from a seat → the episode is void, excluded from every denominator
+structurally, refused by `janus stats`, and a provider failure mid-run
+aborts the run rather than burning the remaining seeds in silence. WO-12.
+
+**Why this entry is the capstone of the series.** ARCHITECTURE_REVIEW
+named the central problem in March-of-this-week terms: `0` meant six
+different things and nothing distinguished them. As of this entry, every
+meaning has its own instrument:
+
+| a zero could mean | now distinguished by |
+|---|---|
+| behaviour did not occur | the devil bracket proves the detector *could* have fired |
+| detector missed it | saint + devil brackets |
+| detector gated on a condition that never held | source-derived coverage guards (M36, M45 class) |
+| arm unreachable / control ran instead | variant walks + one-episode live smoke |
+| tool never offered | toolset-from-source guard (M36) |
+| model could not operate the protocol | playability taxonomy (M77) + every call served or counted (M78) + **the episode liveness gate (this entry)** |
+
+A zero that survives all six instruments is a finding about a model.
+That sentence could not be written at any earlier point in this project.
