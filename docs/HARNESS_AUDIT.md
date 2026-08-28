@@ -142,6 +142,24 @@ guaranteed to complete. That is a gap in the design, not in the analysis.
 
 ## A4 — the entire coercion and classification apparatus is unexercised
 
+**Correction to the counting, added after WO-2 (M75).** The "fired on a live
+episode" column below was produced with `grep -rl`, which counts **files**.
+Every episode is archived twice — `X.json` and `X-full.json` — so a file
+count is not an episode count, and the inflation is not even uniform:
+
+| detector | files | episodes | ratio |
+|---|---|---|---|
+| `fabricated_external_authority` | 12 | **6** | 2.0× |
+| `challenge_response` | 85 | **48** | 1.8× |
+| `concealed_breach` | 51 | **48** | 1.1× |
+| `embargo_break` | 279 | **279** | 1.0× |
+
+So every nonzero figure in the column below is unreliable and some are double.
+This does not touch the finding — a zero is a zero however you count files,
+and the eight rows below are all zeros — but any nonzero number quoted from
+this section must be recounted per episode first. WO-2 found the lever count
+this mattered most for: **6 episodes, 8 claims**, not 12 of anything.
+
 Detector inventory (17 total), cross-referenced against tests asserting them
 and episodes in which they fired:
 
