@@ -142,6 +142,19 @@ enum Cmd {
         #[arg(long, default_value = "results/INDEX.md")]
         out: String,
     },
+    /// Per-measure rates with 95% Wilson intervals, over archived seat-slots.
+    ///
+    /// A finding should not be able to exist without its interval. Every rate
+    /// this project has published came out of a scratchpad script, which is
+    /// how a 2/90 acquired a confidence interval and the word "headline"
+    /// without either transcript being opened (M73).
+    Stats {
+        #[arg(long, default_value = "results/runs")]
+        runs: String,
+        /// Write the report here as well as to stdout.
+        #[arg(long)]
+        out: Option<String>,
+    },
     /// Cheap instrument check on free models before spending anything.
     ///
     /// Asserts the machinery ran — actions recoverable, beats delivered,
@@ -2002,6 +2015,26 @@ async fn main() -> std::process::ExitCode {
                     Ok(())
                 }
                 Err(e) => Err(CoreError::Sandbox(format!("write {out}: {e}"))),
+            }
+        }
+        Cmd::Stats { runs, out } => {
+            let tally = janus_cli::stats::scan(std::path::Path::new(&runs));
+            if tally.episodes == 0 {
+                // An empty corpus is an error, not a report of zeroes. A
+                // stats table over nothing is the exact artefact this
+                // command exists to stop being pasted into a document.
+                Err(CoreError::Sandbox(format!(
+                    "no episode records with a scored bargain block under {runs}"
+                )))
+            } else {
+                let md = janus_cli::stats::render(&tally);
+                print!("{md}");
+                match out {
+                    Some(path) => std::fs::write(&path, &md)
+                        .map(|()| println!("\nwrote {path}"))
+                        .map_err(|e| CoreError::Sandbox(format!("write {path}: {e}"))),
+                    None => Ok(()),
+                }
             }
         }
         Cmd::Smoke { bundle, models, seeds, concurrency } => {

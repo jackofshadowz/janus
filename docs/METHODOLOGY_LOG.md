@@ -2765,3 +2765,77 @@ before reporting the metric.** Having the rule is not the same as following
 it, and an audit is exactly where not following it does the most damage.
 
 Lane B's methodology entries begin at M74.
+
+## M74 — Every rate this project has published came out of a scratchpad script
+
+The analysis lived in throwaway Python. That is how `2/90` acquired a Wilson
+interval, the word "headline", and a place in a harness audit without either
+transcript being opened — and it is how the audit's three published rates came
+to rest on three different denominators without anyone noticing, because each
+was computed in a separate script that chose its own.
+
+Why it mattered: the interval is not what catches a false positive — reading
+the episode is — but a rate whose width is not printed beside it is a rate
+that gets copied into a document as a point estimate. `0/92` pasted without
+`[0.000, 0.040]` reads as "does not happen". It means "has not been seen in
+92 tries", which is a different sentence.
+
+**`janus stats`** (`crates/janus-cli/src/stats.rs`, `--runs`, optional
+`--out`) walks the archive the way `janus index` does and prints, per measure
+over seat-slots: k, defined, slots, rate, 95% Wilson interval.
+
+Three things the shape of the output enforces.
+
+*Wilson, never Wald.* Every interesting number here is a small k over a small
+n, and the normal approximation returns `[0, 0]` at k=0 — a measured
+certainty where there is none. Two calibration anchors are unit-tested against
+numbers this project already printed: `wilson(2, 90) = [0.0061, 0.0774]`
+(A3's interval) and `wilson(0, 326) = [0, 0.0116]` (A1's). Two anchors at two
+different n, so agreement cannot be a coincidence.
+
+*Undefined is not zero.* `defined` is a separate column from `slots` and the
+proportion is taken over `defined`. A seat that was never in a position for a
+measure to be read and a seat that declined to fire it are different findings;
+`n = 0` returns `[0, 1]`, because no observations constrain a proportion at
+all. The presence measures needed the same care in the other direction:
+`fallback_disclosed` is a round number, so a null means "never", but a record
+written before the field existed means nothing — 0/58, not 0/94.
+
+*A measure that is not deception says so on the line where it is printed.*
+A2's finding was never that `overstated_to_principal` was miscomputed. It was
+that a reader meeting it in a table had no way to know 61 of its 69 firings
+were the seat correcting itself. So the caveat travels in the row, because
+the row is what gets copied, and the report prints
+`first_figure_differed × debrief_verdict` rather than leaving that
+cross-tabulation to a side script — which is exactly the arrangement M73 came
+out of.
+
+**Calibration, against the committed archive at `97e4144`** — 47 episodes
+carrying a scored bargain block, 94 seat-slots:
+
+| audit figure | `janus stats` |
+|---|---|
+| A1: 0 / 92 MPR slots | `mpr > 0` = 0/92, `[0.000, 0.040]` |
+| A1: 0 / 326 claims, [0, 1.16%] | `wilson(0, 326)` = `[0.000, 0.0116]` |
+| A2: 69 / 90, [67.0%, 84.2%] | cross-tab 69/90, `[0.669, 0.842]` |
+| A3: 2 / 90, [0.61%, 7.74%] | `overstatement_left_standing` 2/90, `[0.006, 0.077]` |
+| A4: `fallback_disclosed` null in all 58 | 0/58 |
+| A4: `undisclosed_payment` never observed | defined on 0 slots |
+
+Every published figure reproduces. One did not reproduce *as published*: A2's
+`69/90` is the flag restricted to slots that also carry a verdict, while the
+flag itself is defined on all 94 and fires on 71. Neither number is wrong;
+the audit simply did not say which denominator it had used, and no reader
+could have recovered it. The report now prints both and names the difference.
+
+**What the 2/90 is not.** It reproduces because the archived records were
+scored under the pre-M73 code and still carry the old verdict. M73 withdrew
+both episodes as false positives — one seat asked the desk how many rounds of
+decay it had applied, the other called `read` to check the decay rules, and a
+one-turn challenge window scored both as holding a false figure. The
+arithmetic was never what was wrong with that number, which is why it is
+still usable as a calibration anchor and not usable as a result. The report
+says so where it prints it, and the corrected count of confirmed deception in
+this corpus is **0**.
+
+302 passing before, 316 after.
