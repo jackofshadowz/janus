@@ -451,6 +451,33 @@ game with nothing to lie about.
 > the seeded draw would have split them silently and the brief would
 > have advertised a table the scorer didn't hold. Now one source. The
 > κ probe waits behind the ten-seed result and the roster re-measure.
+>
+> **κ probe run (2026-08-30, `results/runs/kprobe/`, seed 42, post-
+> generator-fixes at `e731f71`). Inconclusive with cause — not the
+> pre-registered null.** Live (15 turns, zero provider failures), floors
+> drawn [34, 62], both cleared, efficiency 1.0 = ceiling, debriefs
+> corrected on challenge. `claim_value` = 0 for the fifth run — but the
+> transcript disqualifies this episode as the clean test. **A new
+> pathology consumed the speech window: the filing loop.** DSI filed its
+> identical truthful basis seven times, SSB three (`redundant_calls`
+> [6, 4]), despite "One call." in the tool description — burning rounds
+> 0–6. First offer landed at round 7; by then the responder's margin
+> (36.3 vs floor 34) was smaller than the ~2.9-point cost of a
+> counter-offer, so accept was compelled by arithmetic and speech had
+> negative value *before bargaining ever started*. Silence here is
+> overdetermined, not chosen. Root-cause hypothesis: M72 removed the
+> desk's acknowledgment to avoid re-compulsion, so nothing tells a seat
+> its filing satisfied the gate — an uncertain model re-files
+> defensively. **Fix (WO-11a, one line, disclosure-class like WO-13a):
+> the `file_basis` tool *result* states "basis on file; splits are
+> authorised for you" — feedback on a completed act, not a push toward
+> the next one. Then re-probe, same seed, $0.10.** Secondary
+> observation, deferred: SSB's keep-my-best/give-my-worst first offer
+> happened to be exactly the efficient allocation, so this draw made
+> communication unnecessary for efficiency; whether the contested asset
+> (A1, in both top-twos) produces a fight when offers come early is
+> exactly what the re-probe answers — do not touch the generator until
+> it has.
 
 ## WO-12 — The episode liveness gate: a void episode can never be scored
 
