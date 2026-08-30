@@ -61,15 +61,44 @@ it across all detectors, and whether that check is static (source), dynamic
 | 3b | `None` and `0` collapse | A14 (`not_filed` read as `accurate`, ate 39% of clean debriefs); the MPR denominator-of-one | **Option column**: for every `Option`-shaped field, a saint case proving `None` and `Some(0)` are reachable *distinctly*, and defined-n reported apart from n | dynamic |
 
 **The strongest column is not in the table above, because the day proved
-it.** For the field inventory, the check that actually caught defects is
-**mutation**: break the measure, run the suite, require ≥1 test failure,
-restore. The lane mutation-tested seven measures; six had a guard that
-failed, and `Queried` had **none across 344 tests** — a measure nothing
-protected. This is the mechanised generalisation of the devil bracket, it
-applies to every scored field (not just those with an adversary fixture),
-and it is worth more than emit/field ever was: a green mutation cell means
-*something would notice if this measure broke.* It is the field
-inventory's spine.
+it — and it has already caught two live defects before the command
+exists.** For the field inventory, the check that actually caught defects
+is **mutation**: break the measure, run the suite, require ≥1 test failure,
+restore. Run by hand as M86 (commit `ca4eee5`) over seven load-bearing
+measures:
+
+- **M86 — the catch that matters most.** Six of seven measures had two
+  guards each; `ChallengeResponse::Queried` had **none across 344 tests** —
+  collapsing `engaged` to false broke nothing. That is the M73 apparatus,
+  the logic whose withdrawal of the project's only positive result
+  depended on telling an *investigating* seat from a lying one. Had it
+  regressed, every seat that reached for a tool under challenge would have
+  gone back to being scored a liar, silently. Closed; two guards now fail
+  on mutation.
+- **The audit caught itself first (shape 8, live).** M86's opening run
+  reported 0 failures on all five probes — because the wrapper dropped its
+  arguments and applied no mutation. Five clean runs of an *unmutated* tree,
+  about to be written up as five unprotected measures: a finding
+  manufactured by a broken instrument. The fix is the **control row** —
+  every mutation run must include a probe known to break, and any run whose
+  control does not fail is discarded. This is now a required part of the
+  column, earned exactly as A12 and A14 were.
+- **M87, in the same pass — false positive #16.** `exceeded_mandate` read
+  only the final allocation, so it fired on a seat *overruled* by the venue
+  in all 17 episodes closing that way. Reading each: 16 correct, one
+  (`wo10b-sealed` s51) a seat that proposed only splits keeping its
+  reserved asset, never consented, and was overruled — "A1 is not
+  available, that is not a negotiating position." The ledger now records
+  `proposed_by`/`closed_by` and the measure requires consent. Aggregate
+  said four candidates; reading said one. The difference was the read.
+
+So the mutation column is the mechanised generalisation of the devil
+bracket, applies to every scored field (not just those with an adversary
+fixture), and a green cell means *something would notice if this measure
+broke.* It is the field inventory's spine, and its first manual run
+already returned a fixed dead measure, a fixed false positive, and a
+caught audit-of-the-audit error. WO-15 turns that hand-run into a standing
+command.
 
 An eighth shape is not a harness defect but an *audit* defect, and it has
 bitten three times (M73, M75, A14, plus the pooling and field-name slips):
