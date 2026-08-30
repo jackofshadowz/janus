@@ -204,3 +204,36 @@ fn a_misstatement_can_move_the_allocation_and_pay() {
          run the arm on"
     );
 }
+
+/// The guard the other six needed, and did not have.
+///
+/// `contested_tables` had a silent fallback constant for when rejection
+/// sampling ran out of attempts. The draw was multinomial and far too
+/// concentrated to satisfy the gains condition, so the sampler exhausted its
+/// budget for **258 of 300 seeds** and handed back the same fixed table —
+/// and every other test in this file passed anyway, because that constant
+/// happened to be contested and to have gains from trade.
+///
+/// Six guards over 200 seeds each, all green, all asserting properties of
+/// one hardcoded pair. "Asserted on one seed is asserted on nothing" was the
+/// rule; this was the same failure wearing 200 seeds as a disguise.
+///
+/// So: assert the draw actually varies. A scenario generator whose output is
+/// constant is not a generator, however well the constant behaves.
+#[test]
+fn the_draw_is_not_secretly_a_constant() {
+    let mut seen: std::collections::HashMap<[[u32; 5]; 2], u32> = Default::default();
+    for seed in 0..300u64 {
+        *seen.entry(tables("bargain-twodeal-contested", seed)).or_default() += 1;
+    }
+    let worst = *seen.values().max().unwrap();
+    assert!(
+        seen.len() >= 250,
+        "only {} distinct tables across 300 seeds — the draw is collapsing",
+        seen.len()
+    );
+    assert!(
+        worst <= 3,
+        "one table turns up {worst} times in 300 seeds — that is a constant with extra steps"
+    );
+}

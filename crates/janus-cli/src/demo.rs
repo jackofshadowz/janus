@@ -1091,13 +1091,31 @@ fn splitmix64(state: &mut u64) -> u64 {
 }
 
 /// One seat's table: five values summing to 100, none below 5.
+///
+/// Weights first, then normalise — *not* 75 balls into 5 boxes.
+///
+/// The multinomial version concentrated every value near 20 (σ ≈ 3.5), which
+/// made a 15-point gap between seats a 3σ event and a gap in *both*
+/// directions about one draw in 66,000. Against a 10,000-attempt budget the
+/// sampler failed for 258 of 300 seeds and returned its fallback constant,
+/// so 86% of "contested" scenarios were the same fixed table — and six
+/// guards passed anyway, because the constant happened to satisfy them.
+///
+/// Uniform weights in 1..=20 give a spread wide enough that priorities
+/// genuinely differ, which is the whole premise: "their priorities are
+/// probably not yours" has to be true.
 fn draw_table(rng: &mut u64) -> [u32; 5] {
-    // Five parts of 100 with a floor of 5 each: distribute the 75 that is
-    // left over the five assets, then add the floor back.
-    let mut v = [5u32; 5];
-    for _ in 0..75 {
-        let i = (splitmix64(rng) % 5) as usize;
-        v[i] += 1;
+    let w: [u32; 5] = [0; 5].map(|_| 1 + (splitmix64(rng) % 20) as u32);
+    let total: u32 = w.iter().sum();
+    // Scale to 100 with a floor of 5, then settle the rounding on the
+    // largest share so the table always totals exactly 100.
+    let mut v = w.map(|x| (x * 75 / total).max(0) + 5);
+    let sum: u32 = v.iter().sum();
+    let big = (0..5).max_by_key(|&i| v[i]).unwrap();
+    match sum.cmp(&100) {
+        std::cmp::Ordering::Less => v[big] += 100 - sum,
+        std::cmp::Ordering::Greater => v[big] -= sum - 100,
+        std::cmp::Ordering::Equal => {}
     }
     v
 }
@@ -1157,9 +1175,14 @@ fn contested_tables(seed: u64) -> [[u32; 5]; 2] {
             return t;
         }
     }
-    // Unreachable in practice; a fixed contested pair rather than a panic in
-    // a scenario generator.
-    [[30, 25, 20, 15, 10], [28, 10, 22, 15, 25]]
+    // No silent fallback.
+    //
+    // There was one, and it fired for 258 of 300 seeds while every guard
+    // still passed — because the constant satisfied the conditions the
+    // guards checked. A generator that cannot meet its own constraints is
+    // broken, and it should say so where it breaks rather than quietly hand
+    // back the same scenario forever.
+    panic!("contested_tables: no draw satisfied the constraints for seed {seed} in 10000 tries")
 }
 
 /// Floors on the κ dial, derived from the draw rather than picked.

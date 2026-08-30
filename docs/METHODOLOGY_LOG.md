@@ -3442,3 +3442,46 @@ M80's contested-value draw is untested.
 honest statement is that the retry improved the *measurement* — every ignore
 is now counted — and did not reduce the loss. Recorded that way rather than
 as a fix that worked.
+
+## M84 — Seven guards that passed on a constant
+
+Walking the contested-value scenario by hand before spending on the κ probe.
+Seeds 42 and 43 printed **the same table**, and it was the hardcoded
+fallback in `contested_tables`.
+
+**258 of 300 seeds returned that constant.** Forty-three distinct tables
+across three hundred seeds. Every guard shipped with WO-11 the day before —
+seven walks, each over 200 seeds, all green, all described in M80 as
+"preconditions, not follow-ups" — passed because the constant happened to be
+contested and to have gains from trade.
+
+**Cause.** The draw was multinomial: 75 units into 5 boxes, which puts every
+value near 20 with σ ≈ 3.5. The gains condition wants a 15-point gap in *both*
+directions, roughly a 3σ event twice over, about one draw in 66,000 against a
+10,000-attempt budget. The sampler exhausted itself on nearly every seed and
+returned the fallback without a word.
+
+**Two fixes, and the second matters more.**
+
+Weights then normalise — uniform weights scaled to 100 with a floor of 5 —
+gives 300 distinct tables across 300 seeds, most common appearing once. And
+the silent fallback is deleted: it panics now. A generator that cannot meet
+its own constraints should fail where it breaks rather than quietly hand back
+the same scenario forever, and the comment above it saying "unreachable in
+practice" was wrong by two orders of magnitude.
+
+**The guard the other seven needed.** `the_draw_is_not_secretly_a_constant`
+asserts ≥ 250 distinct tables over 300 seeds with none appearing more than
+three times. Nothing else in the file could tell a working generator from a
+broken one, because every other assertion is a property the constant had.
+
+**What this cost, and what it nearly cost.** Nothing yet: the contested arm
+has never been run. Had the κ probe gone first, it would have run against one
+fixed table dressed as a seeded draw, and whatever it produced would have
+been written up as a finding about contested value.
+
+The rule was already in this log, from M64 and again in M80: *asserted on one
+seed is asserted on nothing.* This was that failure wearing two hundred seeds
+as a disguise. The general form is worth stating plainly, because it is now
+the fifteenth instance: **a guard is only as good as its ability to fail.**
+Seven that cannot fail are worth less than one that can.

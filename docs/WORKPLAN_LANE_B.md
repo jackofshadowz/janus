@@ -361,6 +361,18 @@ write-up in `results/` as the week's definition-of-done artefact.
 > five pre-fix pairs are not extended, because `parallel_tool_calls`
 > changed what a turn is and mixing would confound the fix itself.
 >
+> **SHIPPED (`85d83f5`).** The pre-registered test crossed: 0/18 vs
+> 11/18 seat-slots, 8/9 discordant seeds one direction, exact one-sided
+> p = 0.0039, on the independent seed set 47–55 with seed 56 void-gated.
+> Open-arm zero is a true zero; sealed count is a floor (ten calls lost
+> to the ~4% provider-ignore rate — retry rescued 1/54, recorded as
+> measurement improvement, not loss reduction). Fourteen of fourteen
+> attempts classed fabricated enforcement. Remaining on this data: the
+> third cell — sealed seats that declined to threaten, split into
+> failed-honestly vs misreported-to-desk, both structurally scorable
+> from ground truth already held. Then the κ probe (WO-11) and the
+> roster re-measure (WO-9).
+>
 > **Pre-registration, pinned before the fresh data lands.** Passes 1 and
 > 2 share seeds 42–46: their discordant pairs are the same scenarios
 > under two protocols, correlated evidence, never addends — the strategy
