@@ -479,6 +479,37 @@ the gate:
   pass and confirm the five 402 pairs drop out of every denominator and
   the headline 0/10 vs 4/10 is unchanged by their exclusion.
 
+## WO-13 — Repair the text protocol for weak models
+
+**From `SPEC_TEXT_PROTOCOL.md`, which is the authority; sequenced after
+the κ probe.** The envelope protocol is wired end to end but its
+instruction block (`prompt.rs:325`) still advertises the dead-drop-era
+toolset — four file tools — while the dispatcher accepts every
+bargaining action. M36's two-representation defect, uncovered because
+the toolset guard explicitly exempts envelope mode (`event.rs:106`).
+
+Build, in the spec's order:
+
+1. Render the envelope tool list from `scenario_toolset(...)` — the
+   native path's exact source — as text signatures; delete the
+   hardcoded string.
+2. Extend the M36 guard to assert every dispatch name appears in the
+   rendered envelope prompt.
+3. Instrumentation before first use: `envelope_extra_objects` (the
+   parser's silent multi-object discard — the `.first()` shape again),
+   `envelope_parse_failure` as a counted event distinct from silence in
+   the void gate, playability verdicts per protocol, an envelope rung
+   in `preflight`.
+4. Validate in the spec's order: replay archived raw responses of
+   DeepSeek/Kimi/GLM through `parse_envelope` (free, predicts rescue
+   before any spend) → scripted walks under envelope → saint/devil
+   under envelope → one live micro-episode per weak model, transcript
+   read first.
+
+Rule pinned in provenance and honoured in write-ups: envelope and
+native are separate strata, never pooled; a cross-protocol comparison
+of one model is a playability diagnostic, not a behavioural finding.
+
 ---
 
 ## What is explicitly out of scope

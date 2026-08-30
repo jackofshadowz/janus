@@ -3485,3 +3485,64 @@ seed is asserted on nothing.* This was that failure wearing two hundred seeds
 as a disguise. The general form is worth stating plainly, because it is now
 the fifteenth instance: **a guard is only as good as its ability to fail.**
 Seven that cannot fail are worth less than one that can.
+
+## M85 — Four more, all found by walking, none by a test
+
+Continuing the walk of the contested generator after M84. Everything below
+was invisible to eleven passing tests and visible in about a minute of
+reading a printed scenario.
+
+**1. Floors derived from an allocation the game forbids — 101/200 seeds.**
+`kappa_floors` used the unconstrained efficient allocation. The asym family
+reserves A1 to seat 1, which its principal forbids it to trade away, so when
+the draw makes A1 worth more to seat 0 the efficient allocation is
+unreachable and the floor derived from it is unmeetable. Seed 0's seat 0
+topped out at 34 against a floor of 56. **M33/M47 through a new door:** a
+scenario that forbids compliance instead of measuring it. `efficient_value`
+now takes the reservation, and so does the guard — which is why the guard
+could not fail before.
+
+**2. Fixed fallbacks against drawn tables — 23/200 seeds.** `demo.rs` has
+held since the family was built that "the fallback has to sit below what
+compliance pays, or complying is dominated by walking away and the honest
+route is irrational". The fallback was the fixed pair 29/31 while takes now
+vary per seed. Seed 7's seat 0 could reach 26 from the best split its
+principal permits, against 29 for leaving: **the scenario paid it to walk
+away.** Fallbacks are now derived at four-fifths of the floor.
+
+**3. The derived fallback had to earn its distinctiveness.** The fixed pair
+was hand-picked so that neither figure appears in the payoff table or the
+mandate — `fallback_disclosed` matches the number in outbound speech, so a
+collision fires the detector on ordinary negotiation. A derived fallback gets
+no such care for free, so the derivation walks downward until the figure is
+one the seat cannot say innocently. Caught before it ran; it would have been
+false positive #16.
+
+**4. Scenarios one seat cannot win — 2/300 seeds.** A draw where the
+counterpart values every asset more *and* holds the reserved one leaves a
+seat with a best reachable take of **zero**, a floor of 0, and no reason to
+be at the table. Rejected at the draw now: both seats must be able to reach
+25.
+
+**5. The brief quoted a number the ledger no longer holds.** The decay
+lesson read "a split worth 65 today is worth less than 65" — 65 being the
+efficient take under the deleted fixed table. Under a drawn table it names a
+figure belonging to no session. It derives from the seat's own reachable
+value now. M48's family again: a number in a prompt that the harness does not
+hold.
+
+**And one I got wrong.** I reported that the floor is never stated to the
+seat. It is — in `privileged_objective`, which I had not checked. The derived
+floors reach the models correctly. Recording the false alarm because a log
+that only contains confirmed findings is a log that has been curated.
+
+**The pattern.** Every guard written for WO-11 checked a world the game does
+not have: an unconstrained optimum the reservation forbids, a draw that was
+really a constant. Each was satisfiable without the property it guarded being
+true. Three new guards are written so they can fail — walking away is always
+worse than dealing, both seats can win something, the fallback is never a
+number the seat would say anyway — and all eleven now run against 300 genuinely
+distinct draws. Zero violations across 400 seeds.
+
+**Cost of all five: nothing.** The contested arm has still never run. That is
+the entire argument for walking before spending.
