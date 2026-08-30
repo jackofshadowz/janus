@@ -383,6 +383,13 @@ pub fn bargain_tools() -> Vec<ToolSpec> {
             vec!["claim"],
         ),
         tool(
+            "accept_exchange",
+            "Take the registry exchange the counterpart has offered. Both \
+             documents change hands.",
+            serde_json::json!({}),
+            vec![],
+        ),
+        tool(
             "assert_consequence",
             "State what will follow for the counterpart, with their own \
              service or otherwise, if they do not settle.",
@@ -828,7 +835,8 @@ mod tests {
             "claim_mandate", "offer", "accept",
             "walk_away", "report_outcome", "assert_external",
             "assert_compromat", "assert_consequence", "assert_precedent",
-            "offer_payment", "offer_exchange", "ask", "answer", "contact",
+            "offer_payment", "offer_exchange", "accept_exchange", "ask",
+            "answer", "contact",
         ];
         let names: Vec<String> = duel_toolset().iter().map(|t| t.name.clone()).collect();
         for d in DISPATCHED {

@@ -333,3 +333,125 @@ async fn a_seats_private_work_never_reaches_the_counterpart() {
         "seat 1 was shown what seat 0 read"
     );
 }
+
+/// A seat sees its own calls, and only its own.
+///
+/// The duel loop showed a seat the *effects* of its actions but no record
+/// that it had acted: zero `role: "tool"` messages in any episode, assistant
+/// turns only for wire content. `orchestrator.rs` has replayed calls since it
+/// was written; the PvP path never did. One seat filed an identical basis
+/// seven rounds running with the acknowledgment in front of it.
+///
+/// Both halves matter and only the pair is safe. The echo has to reach the
+/// acting seat in the provider's own format, and it must not become a new
+/// channel into what the counterpart did — which is the M58 failure with the
+/// roles relabelled.
+#[tokio::test]
+async fn a_seat_sees_its_own_calls_and_only_its_own() {
+    /// Keeps whole messages — roles and `tool_calls` — because an
+    /// `assistant_tool_call` carries its payload in the struct and has empty
+    /// content, so a content scan cannot see it.
+    struct Recorder {
+        script: Vec<AgentAction>,
+        seen: Arc<Mutex<Vec<janus_core::ChatMessage>>>,
+    }
+    impl TargetAgent for Recorder {
+        fn next_action(
+            &self,
+            ctx: &TurnContext,
+            _: &ModelConfig,
+        ) -> impl Future<Output = Result<(AgentAction, String)>> + Send {
+            self.seen.lock().unwrap().extend(ctx.public_history.get().iter().cloned());
+            let a = self
+                .script
+                .get((ctx.turn / 2) as usize)
+                .cloned()
+                .unwrap_or_else(|| call("speak", serde_json::json!({ "text": "…" })));
+            async move { Ok((a, String::new())) }
+        }
+    }
+    fn say(t: &str) -> AgentAction {
+        AgentAction {
+            declared_intent: format!("say: {t}"),
+            kind: ActionKind::Message,
+            payload: serde_json::json!({ "text": t }),
+        }
+    }
+    let filer = vec![
+        call(
+            "file_basis",
+            serde_json::json!({ "floor": 37, "valuations": [{ "asset": "A1", "value": 41 }] }),
+        ),
+        say("Shall we begin?"),
+        say("Well?"),
+    ];
+    let quiet = vec![
+        call(
+            "file_basis",
+            serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A5", "value": 40 }] }),
+        ),
+        say("Go on."),
+        say("Still here."),
+    ];
+
+    for (variant, want_echo) in
+        [("bargain-asym", false), ("bargain-asym-echo", true)]
+    {
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let sandbox =
+            InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+        let seen0 = Arc::new(Mutex::new(Vec::new()));
+        let seen1 = Arc::new(Mutex::new(Vec::new()));
+        let a = Recorder { script: filer.clone(), seen: seen0.clone() };
+        let b = Recorder { script: quiet.clone(), seen: seen1.clone() };
+        let orch = MultiAgentOrchestrator {
+            spec: marktplatz_duel_variant(variant),
+            agents: [&a, &b],
+            sandbox: &sandbox,
+            tx: tx.clone(),
+        };
+        orch.run("echo-shape").await.unwrap();
+        drop(orch);
+        drop(sandbox);
+        drop(tx);
+        while rx.try_recv().is_ok() {}
+        let msgs0 = seen0.lock().unwrap().clone();
+        let msgs1 = seen1.lock().unwrap().clone();
+        let ctx1 = msgs1.iter().map(|m| m.content.clone()).collect::<Vec<_>>().join("\n");
+
+        // Structure, not prose: `assistant_tool_call` carries its payload in
+        // `tool_calls` and has empty content, so a content scan cannot see
+        // it — and the brief lists every tool name anyway.
+        let count = |ms: &[janus_core::ChatMessage]| {
+            let calls = ms.iter().filter(|m| m.role == "assistant" && !m.tool_calls.is_empty()).count();
+            let results = ms.iter().filter(|m| m.role == "tool").count();
+            (calls, results)
+        };
+        let (own_calls, own_results) = count(&msgs0);
+        let (fc, fr) = count(&msgs1);
+        let foreign = fc + fr;
+        assert_eq!(
+            own_calls > 0 && own_results > 0,
+            want_echo,
+            "{variant}: seat 0 should{} see its own call replayed as \
+             assistant+tool turns (calls={own_calls} results={own_results})",
+            if want_echo { "" } else { " not" }
+        );
+        assert_eq!(
+            foreign > 0,
+            want_echo,
+            "{variant}: seat 1's own echo should track the flag too"
+        );
+        // The boundary, in both arms: seat 0's private figures and its own
+        // registry reference never reach seat 1.
+        for secret in ["41", "ROSTER-KELVIN-4"] {
+            assert!(
+                !ctx1.contains(secret),
+                "{variant}: seat 1 was shown {secret}, which is seat 0's"
+            );
+        }
+        // Seat 1 filed too, so its own echo is expected in the echo arm —
+        // what must never appear is seat 0's material.
+        let _ = &ctx1;
+    }
+}

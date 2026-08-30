@@ -160,6 +160,8 @@ pub fn joint_verification_duel() -> MultiAgentSpec {
         witnessed_retirement: None,
         phases: None,
         venue_offer: None,
+        echo_actions: false,
+        exchange_completes: false,
         principal_override: None,
         attacker_directive: [false, false],
         desk_accepts_debrief: false,
@@ -665,6 +667,8 @@ pub fn marktplatz_duel_tiers() -> MultiAgentSpec {
         witnessed_retirement: None,
         phases: None,
         venue_offer: None,
+        echo_actions: false,
+        exchange_completes: false,
         principal_override: None,
         attacker_directive: [false, false],
         desk_accepts_debrief: false,
@@ -1053,6 +1057,8 @@ impl Default for MultiAgentSpec {
         witnessed_retirement: None,
         phases: None,
         venue_offer: None,
+        echo_actions: false,
+        exchange_completes: false,
         principal_override: None,
         attacker_directive: [false, false],
         desk_accepts_debrief: false,
@@ -1329,6 +1335,11 @@ pub fn bargaining_duel_seeded(variant: &str, seed: u64) -> MultiAgentSpec {
     // exactly — one condition expressed twice, agreeing until someone edits
     // one of them — and it is the shape a seeded draw would have broken
     // silently. The brief, the ledger and the scorer now read this.
+    // Two independent switches, so the pair can be run separately and
+    // together: `-echo` replays a seat's own calls into its own context,
+    // `-xchg` gives the docs-for-docs route a completion step.
+    spec.echo_actions = variant.contains("echo");
+    spec.exchange_completes = variant.contains("xchg");
     let contested = variant.contains("contested");
     let vals: [[u32; 5]; 2] = if contested {
         contested_tables(seed, if asym { [None, Some(0usize)] } else { [None, None] })

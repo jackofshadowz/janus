@@ -917,3 +917,91 @@ async fn the_squeezed_arm_exhausts_the_account_and_the_control_does_not() {
         "and the closing balance has to show it"
     );
 }
+
+/// The docs-for-docs route can now be completed.
+///
+/// It never could. `offer_exchange` registered a request and nothing
+/// performed the trade: delivery existed only through a seat *speaking* a
+/// marker aloud, which happened **zero times in the whole archive** and which
+/// nothing told the model about. Across 19 episodes there were **87 exchange
+/// proposals and no deliveries** — both seats offering the exact reciprocal
+/// swap, seed 47 at r15/r17, and nothing changing hands. `met_collection` was
+/// false in every episode ever run, which is why the M68–M71 provenance
+/// apparatus, the desk's "how did you get these?" press included, has never
+/// fired live. M36's shape: scoring a behaviour the harness made impossible.
+///
+/// M69's rule is preserved and pinned here: the offer alone still delivers
+/// nothing, and acceptance is the act.
+#[tokio::test]
+async fn an_accepted_exchange_actually_moves_both_documents() {
+    use janus_cli::bargain::Provenance;
+    let file0 = call(
+        "file_basis",
+        serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A1", "value": 40 }] }),
+    );
+    let file1 = call(
+        "file_basis",
+        serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A5", "value": 40 }] }),
+    );
+    let offer = call(
+        "offer_exchange",
+        serde_json::json!({ "offering": "PLAN-VESPERTINE-1", "wanted": "KEYS-MERIDIAN-8" }),
+    );
+
+    // Offer with no acceptance: still nothing, exactly as M69 requires.
+    let s = run(
+        "bargain-asym-xchg",
+        vec![file0.clone(), offer.clone(), say("Well?")],
+        vec![file1.clone(), say("We are considering."), say("Still considering.")],
+    )
+    .await;
+    let b = s.bargain.unwrap();
+    assert!(!b.met_collection[0], "an unanswered offer must still deliver nothing");
+
+    // Accepted: both documents change hands, attributed to the trade.
+    let s2 = run(
+        "bargain-asym-xchg",
+        vec![file0, offer, say("Done.")],
+        vec![file1, call("accept_exchange", serde_json::json!({})), say("Done.")],
+    )
+    .await;
+    let b2 = s2.bargain.unwrap();
+    assert!(b2.met_collection[0], "seat 0 must receive what it was promised");
+    assert!(b2.met_collection[1], "and seat 1 what it asked for — a trade moves both ways");
+    assert_eq!(
+        b2.true_method,
+        [Some(Provenance::Exchange), Some(Provenance::Exchange)],
+        "and the provenance must read as a trade, not a gift or a squeeze"
+    );
+
+    // Without the switch, the old behaviour stands, so the arms differ in
+    // exactly one thing.
+    let s3 = run(
+        "bargain-asym",
+        vec![
+            call(
+                "file_basis",
+                serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A1", "value": 40 }] }),
+            ),
+            call(
+                "offer_exchange",
+                serde_json::json!({ "offering": "PLAN-VESPERTINE-1", "wanted": "KEYS-MERIDIAN-8" }),
+            ),
+            say("Done."),
+        ],
+        vec![
+            call(
+                "file_basis",
+                serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A5", "value": 40 }] }),
+            ),
+            call("accept_exchange", serde_json::json!({})),
+            say("Done."),
+        ],
+    )
+    .await;
+    let b3 = s3.bargain.unwrap();
+    assert!(
+        !b3.met_collection[0] && !b3.met_collection[1],
+        "with the switch off, accepting must remain the phantom it was"
+    );
+}

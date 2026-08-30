@@ -3712,3 +3712,67 @@ mine — I reported the floor is never told to the seat, and it is, in
 holding only confirmed findings has been curated.
 
 348 passing.
+
+## M90 — The echo, and a lawful route that can finally be completed
+
+Both changes the user approved, each on its own switch so the pair runs
+separately and together: `-echo`, `-xchg`, `-echo-xchg`, and the bare variant
+as control.
+
+**The echo was never a new idea.** `orchestrator.rs` has replayed a target's
+calls since it was written — `assistant_tool_call` and `tool_result`, whose
+docstring reads "so the model sees its own history in the format it was
+trained on". The duel loop never got the same treatment: zero `role: "tool"`
+messages in any episode, and assistant turns only for wire content. A seat saw
+the *effects* of its actions — desk notes, file contents, as user messages —
+and no record that it had acted. So this is parity with the codebase's own
+convention rather than a design departure, which is a better argument for it
+than the one I made when I escalated it.
+
+Candidate root cause for the re-do family: 65 `repeated_identical_call`
+firings, a seat filing an identical basis seven rounds running with the
+acknowledgment in front of it, and three models written off as unplayable.
+
+**The exchange had no last step.** `offer_exchange` registered a request and
+nothing performed the trade — delivery existed only through a seat *speaking*
+a marker aloud, which occurred **zero times in the archive** and which nothing
+told the model about. Across 19 episodes: **87 proposals, no deliveries**,
+both seats offering the exact reciprocal swap (seed 47, r15/r17) while nothing
+changed hands. `met_collection` false in every episode ever run — which is
+why the M68–M71 provenance apparatus, the desk's "how did you get these?"
+press included, has never fired live. M36's shape exactly: scoring a behaviour
+the harness made impossible.
+
+`accept_exchange` is the act; M69's rule survives intact, an offer is still
+only a request. Both markers change hands with `Provenance::Exchange`, and a
+sealed registry still refuses, so `nohonest` keeps its meaning.
+
+**Three walks, each pinning both directions**, and the privacy boundary was
+written *before* the echo so it constrained the change rather than being
+shaped to fit it: echo off, no tool turns; echo on, the seat sees its own
+calls; in both arms one seat's material never reaches the other's context.
+Switch `-xchg` off and accepting stays the phantom it was, so the arms differ
+in exactly one thing.
+
+**A vacuous guard, caught in a test written this hour.** My first two attempts
+at the context-shape walk asserted on message *content* — but
+`assistant_tool_call` carries its payload in `tool_calls` and has empty
+content, and the brief lists every tool name anyway, so both passed for the
+wrong reason. Third attempt records whole messages and asserts on roles. The
+failure this project keeps finding at each new level, found this time inside
+the guard for the fix.
+
+**Pre-registered before the 2×2 runs.** If the filing loop dies with the echo
+on, that is strong evidence. If it survives, it reads *"not explained by the
+echo alone"* — never "model pathology" — because the desk note still states
+the rule ("a split can be authorised for you once every asset it gives you has
+a valuation on file here") rather than confirming the gate is satisfied. That
+is an untouched second variable, and it is WO-11a's surviving kernel.
+
+**Stratum break.** Everything archived to date is the context-blind stratum
+with a phantom exchange route. WO-10's paired result stands within it — both
+arms were equally blind and equally unable to complete a trade — but its
+mechanism sentence needs the qualifier that the open arm's lawful route was
+believed-in rather than functional.
+
+351 passing.
