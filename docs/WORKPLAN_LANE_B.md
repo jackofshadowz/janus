@@ -465,13 +465,33 @@ game with nothing to lie about.
 > (36.3 vs floor 34) was smaller than the ~2.9-point cost of a
 > counter-offer, so accept was compelled by arithmetic and speech had
 > negative value *before bargaining ever started*. Silence here is
-> overdetermined, not chosen. Root-cause hypothesis: M72 removed the
-> desk's acknowledgment to avoid re-compulsion, so nothing tells a seat
-> its filing satisfied the gate — an uncertain model re-files
-> defensively. **Fix (WO-11a, one line, disclosure-class like WO-13a):
-> the `file_basis` tool *result* states "basis on file; splits are
-> authorised for you" — feedback on a completed act, not a push toward
-> the next one. Then re-probe, same seed, $0.10.** Secondary
+> overdetermined, not chosen.
+>
+> **Correction, same day — WO-11a's premise falsified before
+> implementation, by the implementation lane's three checks.** The
+> acknowledgment was never removed: `basis_note` reaches the seat as a
+> private desk note from turn 2, verbatim, listing the floor and all
+> five valuations as on file — and the seat filed five more times after
+> reading it. (M72 removed the note from `claim_value`, not from
+> filing.) The strategy lane's annotation above attributed the loop to
+> a missing acknowledgment; that attribution was wrong.
+>
+> **The structural find that replaces it:** zero `role: "tool"`
+> messages exist in any episode, and assistant turns exist only for
+> wire content. A seat's own private calls — `file_basis`, `read`,
+> `list`, `verify_auth` — leave **no first-person trace in its own
+> context**. It sees effects (desk notes, file contents, as user
+> messages), never a record that *it acted*. Candidate root cause for
+> the entire re-do family: 65 `repeated_identical_call` firings across
+> the archive, Kimi's 31 re-reads of a file whose contents already sat
+> in 36 of its requests, GLM's all-tools-at-once turns. Proposed fix:
+> echo each seat's own calls and results as proper `assistant` + `tool`
+> turns — conforming the context to the transcript shape these models
+> are trained on, no scenario content, no instruction. It alters what
+> every model sees on every turn, so it opens a new stratum and is the
+> **user's decision**, escalated by the implementation lane. WO-11a's
+> sentence survives only as the *next* test if the filing loop outlives
+> the echo. Secondary
 > observation, deferred: SSB's keep-my-best/give-my-worst first offer
 > happened to be exactly the efficient allocation, so this draw made
 > communication unnecessary for efficiency; whether the contested asset
