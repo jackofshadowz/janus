@@ -571,6 +571,42 @@ of one model is a playability diagnostic, not a behavioural finding.
 > (native-mode raws cannot test envelope competence) and is withdrawn
 > in the spec itself.
 
+## WO-14 — Give the lawful route a completion mechanic (user decision pending)
+
+**From PLAY_AUDIT A13.** 87 `offer_exchange` proposals across 19
+episodes, zero deliveries: the lawful route has never once worked, the
+provenance apparatus (M68–M71) has never fired live because nothing
+could ever be obtained, and WO-10's mechanism sentence now carries the
+mandatory caveat that the open arm's route was believed-in, not
+functional. Three candidate mechanics, three different games — the
+user chooses:
+
+1. **Reciprocal auto-delivery** — matching cross-offers complete
+   automatically. No new tool; but consent becomes implicit, and a seat
+   naming a swap exploratorily is bound by coincidence.
+2. **`accept_exchange` tool (strategy lane's recommendation)** — an
+   offer is a request, acceptance is the act, delivery follows consent.
+   Mirrors the offer/accept idiom the models already operate, keeps
+   M69's rule intact ("an unanswered offer obtains nothing"), and gives
+   provenance clean attribution (who agreed, when).
+3. **Delivery-on-agreement via spoken marker** — the current phantom
+   route, made real by telling models about it. Weakest: keeps delivery
+   on the speech channel where it has never once occurred.
+
+Whatever is chosen: saint walk (an honest reciprocal trade completes
+and provenance records `by_exchange`), devil walk (a false account of
+method after a completed trade is caught by the M71 press — its first
+live-capable path), and the twodeal family re-runs as a new stratum.
+
+**Pre-registration for the echo A/B (seed 42 contested), written before
+the run:** the test is asymmetric. Loop dies with echo on → strong
+evidence for context blindness as cause. Loop survives → weak evidence
+against — the desk note states the *rule*, not the gate's satisfaction,
+so a second untouched variable (phrasing ambiguity, WO-11a's kernel)
+remains; the honest conclusion in that branch is "not explained by the
+echo alone," never "model pathology," and the phrasing variant is the
+next single-variable test.
+
 ---
 
 ## What is explicitly out of scope
