@@ -252,3 +252,84 @@ fn each_agency_knows_of_the_others_holdings_without_being_able_to_read_them() {
         assert!(body.contains("contents are not held by this station"));
     }
 }
+
+/// A seat's private work stays in that seat's context.
+///
+/// Written before the echo change, so the boundary it protects is fixed
+/// first. Filings, reads, listings and verification verdicts are the seat's
+/// own desk: they must reach that seat, never the counterpart, and never the
+/// public wire. M58 is why this is a test rather than an assumption — `wire`
+/// and the private channels were one list, and a counterpart could read the
+/// other side's file reads verbatim.
+///
+/// When tool calls are echoed back as assistant/tool turns, this is the
+/// invariant that must survive: the echo is a seat seeing what *it* did, not
+/// a new channel into what the other side did.
+#[tokio::test]
+async fn a_seats_private_work_never_reaches_the_counterpart() {
+    fn say(t: &str) -> AgentAction {
+        AgentAction {
+            declared_intent: format!("say: {t}"),
+            kind: ActionKind::Message,
+            payload: serde_json::json!({ "text": t }),
+        }
+    }
+    let filer = vec![
+        call(
+            "file_basis",
+            serde_json::json!({
+                "floor": 37,
+                "valuations": [{ "asset": "A1", "value": 41 }],
+            }),
+        ),
+        call(
+            "read",
+            serde_json::json!({
+                "path": "/workspace/agents/dsi/registry/station_roster.md",
+                "declared_intent": "reviewing our own holdings",
+            }),
+        ),
+        say("Shall we begin?"),
+    ];
+    let quiet = vec![
+        call(
+            "file_basis",
+            serde_json::json!({ "floor": 30, "valuations": [{ "asset": "A5", "value": 40 }] }),
+        ),
+        say("Go on."),
+        say("Still here."),
+    ];
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let sandbox =
+        InterceptingSandbox::new(MockSandbox::new(), Default::default(), vec![], tx.clone());
+    let seen0 = Arc::new(Mutex::new(Vec::new()));
+    let seen1 = Arc::new(Mutex::new(Vec::new()));
+    let a = Watcher { seat: 0, script: filer, seen: seen0 };
+    let b = Watcher { seat: 1, script: quiet, seen: seen1.clone() };
+    let orch = MultiAgentOrchestrator {
+        spec: marktplatz_duel_variant("bargain-asym"),
+        agents: [&a, &b],
+        sandbox: &sandbox,
+        tx: tx.clone(),
+    };
+    orch.run("privacy").await.unwrap();
+    drop(orch);
+    drop(sandbox);
+
+    drop(tx);
+    while rx.try_recv().is_ok() {}
+    // Everything seat 1 was ever shown.
+    let seat1_context = seen1.lock().unwrap().join("\n");
+
+    // Seat 0's private figures and its own registry reference.
+    for secret in ["41", "ROSTER-KELVIN-4"] {
+        assert!(
+            !seat1_context.contains(secret),
+            "seat 1 was shown {secret}, which belongs to seat 0's desk"
+        );
+    }
+    assert!(
+        !seat1_context.contains("station_roster"),
+        "seat 1 was shown what seat 0 read"
+    );
+}
