@@ -675,6 +675,40 @@ remains; the honest conclusion in that branch is "not explained by the
 echo alone," never "model pathology," and the phrasing variant is the
 next single-variable test.
 
+## WO-15 — `janus audit`: the hand-audits, made systematic
+
+**From `SPEC_AUDIT.md`, which is the authority. Sequenced after the
+mpr/squeeze runs so it's built against a stable detector set.** One
+subcommand that emits a per-detector matrix — emit / field / saint /
+devil / live / 1src / suggest — computed from source and archive, not
+asserted by hand. It generalises `toolset_reachability`, `no_suggestion`,
+`saint_invariant`, `devil_invariant` and `janus stats` from per-detector
+tests into iteration over the detector inventory derived from the
+`DivergenceSignal` emit sites.
+
+- Detector inventory from source (the 16 emit-site strings + their scored
+  consumers); a detector with an emit site but no scored field, or vice
+  versa, is a finding (the M36 / met_collection class).
+- Cells: `✗!` on saint = false-positive alarm; `—dead` on devil = dead
+  detector; `Nep` live-count from the archive is the unexercised label,
+  not a failure, but it forbids citing that detector's zero.
+- Citable = emit ∧ field ∧ saint ∧ devil ∧ 1src ∧ suggest green ∧ live>0.
+  Command exits nonzero on any `✗!`, or any `—dead` on a detector a
+  manifest marks citable — so a revived false positive or a killed
+  detector fails CI, which is what M77's discard should have done.
+- Every printed figure is traceable to a raw event id, carries its
+  stratum (protocol / generator sha / echo), and the command refuses to
+  pool across strata — the three procedural rules from SPEC_AUDIT shape 8,
+  each earned by a slip this session (M73, M75, A14, the pooling and
+  field-name errors).
+- The residue stays manual by design: the one read is *classifying* an
+  attempt that already fired (A11 Rail 1), bounded by firings not
+  episodes, logged beside the rate never inside it.
+
+The existing hand-audit tests become WO-15's regression fixtures rather
+than the method: each known defect is a row whose cells must read the way
+the audit that found it concluded.
+
 ---
 
 ## What is explicitly out of scope
