@@ -17,15 +17,31 @@ belongs to one of a small number of **shapes**. A systematic audit checks
 the shapes, mechanically, across the whole detector inventory — and
 reserves human reading for the one residue that genuinely needs it.
 
-## The detector inventory is derivable from source
+## Two inventories, not one — checked from source, 2026-08-30
 
-Sixteen `DivergenceSignal` emit sites in `multi_agent.rs` carry a
-`detector:` string; the bargain summary carries a parallel set of scored
-booleans and `Option`s. Both are enumerable statically, the way
-`toolset_reachability` already derives the dispatch list from source. The
-audit's spine is that inventory: **a detector that exists in neither an
-emit site nor a scored field, or in one but not its expected partner, is
-itself a finding** (this is the M36 / met-collection-field-trap class).
+An earlier draft assumed emit strings and scored fields were two views of
+one detector set. **They are near-disjoint** (verified from source by the
+implementation lane): 18 `DivergenceSignal` emit strings, 69 scored fields
+(39 `BargainOutcome` + 30 `DuelSummary`), and only **four names on both
+sides** (`concealed_breach`, `execution_drift`, `fallback_disclosed`,
+`challenge_response`). A "present in one but not the other is a finding"
+rule would flag 79 of 83 rows on the first run. The two are different
+instruments and the audit needs two inventories with different rules:
+
+- **Emit inventory (18)** — event-stream signals fired at a moment and
+  counted (`coercion_attempt`, `repeated_identical_call`,
+  `agent_injection_attempt`, `calls_discarded`). They carry a turn and
+  `call_id`. Some are counted on the summary under a *different* name
+  (`redundant_calls`, `injection_attempts`, `hallux_verifications`), so a
+  name-match test misses the link — the mapping is by hand, in source, per
+  emit. For these, saint / devil / live / reachability are all meaningful,
+  and **`live == 0` is the M36 shape** (a signal that never fired live is
+  unexercised and must not be cited).
+- **Field inventory (69)** — end-of-episode verdicts computed from the
+  ledger at close (`mpr`, `basis_divergence`, `exceeded_mandate`,
+  `debrief_verdict`, `efficiency_ceiling`). Having no emit site is the
+  normal case, never a finding. `live` is meaningful; the emit columns do
+  not apply. What these need is the mutation column below.
 
 ## The seven defect shapes, each with its systematic check
 
@@ -42,6 +58,18 @@ it across all detectors, and whether that check is static (source), dynamic
 | 5 | a null means six things | ARCHITECTURE_REVIEW | **definedness** reported beside every rate; the six-instrument stack below | static+dynamic |
 | 6 | scoring a behaviour the harness made impossible | M36; A13 (87 offers, 0 deliveries) | **reachability + live-completion ledger**: a scored outcome with zero archived completions is flagged | dynamic |
 | 7 | scenario suggests the behaviour it measures | M29 | **`no_suggestion`** prompt scan, generalised to every detector's trigger vocabulary | static |
+| 3b | `None` and `0` collapse | A14 (`not_filed` read as `accurate`, ate 39% of clean debriefs); the MPR denominator-of-one | **Option column**: for every `Option`-shaped field, a saint case proving `None` and `Some(0)` are reachable *distinctly*, and defined-n reported apart from n | dynamic |
+
+**The strongest column is not in the table above, because the day proved
+it.** For the field inventory, the check that actually caught defects is
+**mutation**: break the measure, run the suite, require ≥1 test failure,
+restore. The lane mutation-tested seven measures; six had a guard that
+failed, and `Queried` had **none across 344 tests** — a measure nothing
+protected. This is the mechanised generalisation of the devil bracket, it
+applies to every scored field (not just those with an adversary fixture),
+and it is worth more than emit/field ever was: a green mutation cell means
+*something would notice if this measure broke.* It is the field
+inventory's spine.
 
 An eighth shape is not a harness defect but an *audit* defect, and it has
 bitten three times (M73, M75, A14, plus the pooling and field-name slips):
@@ -62,40 +90,57 @@ it is citable:
 5. tool never offered — **toolset-from-source** guard
 6. model couldn't operate the protocol — **playability taxonomy + liveness gate**
 
-## The command: `janus audit`
+## The command: `janus audit` — two tables
 
-A new subcommand that emits one row per detector, each cell computed, not
-asserted by hand:
+Each cell computed, not asserted by hand.
+
+**Emit inventory (18 signals):**
 
 ```
-detector                     emit  field  saint  devil  live  1src  suggest
-fabricated_external_authority  ✓     ✓      ✗!    ✓      6ep   ✓     ✓
-coercion_attempt               ✓     ✓      ✓     ✓      12ep  ✓     ✓
-side_payment_taken             ✓     ✓      ✓     —dead  0ep   ✓     ✓
-classified_disclosed           ✓     ✓      ✓     —dead  0ep   ✓     ✓
+signal                        reachable  saint  devil  live  suggest
+coercion_attempt                 ✓         ✓      ✓     12ep    ✓
+fabricated_external_authority    ✓         ✗!     ✓      6ep    ✓
+repeated_identical_call          ✓         ✓      ✓     65ep    ✓
+side_payment_taken               ✓         ✓     —dead   0ep    ✓
+classified_disclosed             ✓         ✓     —dead   0ep    ✓
 ...
 ```
 
-- **emit / field** — static: the detector has both an emit site and a
-  scored consumer. A ✗ is the M36 / field-trap class.
-- **saint / devil** — dynamic: results of the two bracket suites, per
-  detector, aggregated across variants. `✗!` on saint (fires on honest
-  play) is a false-positive alarm; `—dead` on devil (never fires even for
-  the adversary) is a dead-detector alarm.
-- **live** — dynamic: count of archived non-void episodes in which it has
-  ever fired, from `janus stats` over the corpus. `0ep` is not a failure —
-  it is the honest **unexercised** label A4 insisted on, and it forbids
-  citing the detector's zero as behavioural.
-- **1src** — static: no value the detector reads is independently
-  re-declared in a prompt.
-- **suggest** — static: the scenario text does not name the detector's
-  trigger behaviour.
+- **reachable** — static: the emit site is reachable from a tool in the
+  shipped toolset (generalised `toolset_reachability`).
+- **saint / devil / suggest** — as before; `✗!` on saint is a
+  false-positive alarm, `—dead` on devil is a dead-signal alarm.
+- **live** — count of archived non-void episodes it fired in. `0ep` is the
+  honest **unexercised** label (A4), and for an emit signal it is the M36
+  shape: forbids citing the zero.
 
-A detector is **citable** only when emit, field, saint, devil, 1src and
-suggest are green *and* live > 0. The command exits nonzero on any `✗!` or
-any `—dead` on a detector marked citable in a manifest — so a regression
-that revives a false positive or kills a detector fails CI, the way M77's
-discard should have.
+**Field inventory (69 verdicts):**
+
+```
+field                 mutation  option    live   1src   suggest
+mpr                      ✓       ✓(n/d)   1ep     ✓       ✓
+basis_divergence         ✓       ✓(n/d)   1ep     ✓       ✓
+debrief_verdict          ✓        —       many    ✓       ✓
+efficiency_ceiling       ✓        —       many    ✓       ✓
+queried_verdict          ✗!!      —        0      ✓       ✓
+```
+
+- **mutation** — the spine: break the field's computation, run the suite,
+  require ≥1 failure. `✗!!` = *nothing protects this measure* (the
+  `Queried` case). The single most informative cell in either table.
+- **option** — for `Option`-shaped fields: `✓(n/d)` = a saint case proves
+  `None` and `Some(0)` reachable distinctly, and defined-n is reported
+  apart from n. Blank = not `Option`-shaped. The A14 / MPR-denominator
+  column.
+- **live / 1src / suggest** — as above.
+
+**Citable** — an emit signal: reachable ∧ saint ∧ devil ∧ suggest ∧
+live>0. A field: mutation ∧ (option if applicable) ∧ 1src ∧ suggest ∧
+live>0. The command exits nonzero on any `✗!` (revived false positive),
+any `—dead` or `✗!!` on a row a manifest marks citable, so a regression
+that revives a false positive, kills a signal, or leaves a measure
+unguarded fails CI — the way M77's discard and the `Queried` gap should
+have.
 
 ## The irreducible residue: one read, and only one
 
@@ -123,8 +168,16 @@ and by the command's design:
   stream, and any figure it prints is traceable to a raw event id.
 - **Numbers of the wrong vintage are not evidence.** The pre-fix discards
   cited for provider non-compliance; the pooled seeds called "1-in-64."
-  Every count carries its stratum (protocol, generator sha, echo on/off)
-  and the command refuses to pool across strata.
+  Every count carries its stratum and the command refuses to pool across
+  strata. **The stratum key is a coarse label the log assigns
+  deliberately** — `context-blind` / `echo` / `echo+xchg` — *not* the raw
+  `git_sha`: verified with the lane, the manifest already carries
+  `git_sha`, `scenario_hash`, `protocol`, and the episode `spec` carries
+  `echo_actions` / `exchange_completes`, but grouping by sha alone
+  scatters a *scoring* change (pre-`b598799` `accurate` → `not_filed`,
+  same scenario) into singletons. The sha is kept as evidence under the
+  label, never as the key. `stats.rs` reads none of this today; WO-15 adds
+  the grouping key, not new instrumentation.
 - **A field name is a claim.** `summary.met_collection` (None) vs
   `summary.bargain.met_collection` ([True,True]) cost a wrong readout. The
   audit addresses detectors by a single canonical path defined in source,

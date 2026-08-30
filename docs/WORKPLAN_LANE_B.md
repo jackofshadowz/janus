@@ -678,24 +678,28 @@ next single-variable test.
 ## WO-15 — `janus audit`: the hand-audits, made systematic
 
 **From `SPEC_AUDIT.md`, which is the authority. Sequenced after the
-mpr/squeeze runs so it's built against a stable detector set.** One
-subcommand that emits a per-detector matrix — emit / field / saint /
-devil / live / 1src / suggest — computed from source and archive, not
-asserted by hand. It generalises `toolset_reachability`, `no_suggestion`,
-`saint_invariant`, `devil_invariant` and `janus stats` from per-detector
-tests into iteration over the detector inventory derived from the
-`DivergenceSignal` emit sites.
+mpr/squeeze runs so it's built against a stable detector set.** Two tables (checked
+from source with the lane — emit strings and scored fields are near-
+disjoint, 4 of 83 overlap, so a single matrix does not work):
 
-- Detector inventory from source (the 16 emit-site strings + their scored
-  consumers); a detector with an emit site but no scored field, or vice
-  versa, is a finding (the M36 / met_collection class).
-- Cells: `✗!` on saint = false-positive alarm; `—dead` on devil = dead
-  detector; `Nep` live-count from the archive is the unexercised label,
-  not a failure, but it forbids citing that detector's zero.
-- Citable = emit ∧ field ∧ saint ∧ devil ∧ 1src ∧ suggest green ∧ live>0.
-  Command exits nonzero on any `✗!`, or any `—dead` on a detector a
-  manifest marks citable — so a revived false positive or a killed
-  detector fails CI, which is what M77's discard should have done.
+- **Emit inventory (18 signals)** — columns reachable / saint / devil /
+  live / suggest. `live == 0` is the M36 shape and blocks citability.
+- **Field inventory (69 verdicts)** — columns mutation / option / live /
+  1src / suggest. **`mutation` is the spine** (break the measure, run the
+  suite, require ≥1 failure, restore) — the mechanised devil bracket that
+  caught the `Queried` measure with zero guarding tests; `option`
+  (`None` vs `Some(0)` reachable distinctly + defined-n) is the A14 /
+  MPR-denominator column.
+- Citable — emit: reachable ∧ saint ∧ devil ∧ suggest ∧ live>0. Field:
+  mutation ∧ option(if applicable) ∧ 1src ∧ suggest ∧ live>0. Command
+  exits nonzero on any `✗!` (saint firing), or `—dead`/`✗!!` on a row
+  marked citable — so a revived false positive, a killed signal, or an
+  unguarded measure fails CI, which is what M77 and the `Queried` gap
+  should have done.
+- Stratum key is a **coarse deliberate label** (context-blind / echo /
+  echo+xchg), sha kept as evidence not key — grouping by sha alone
+  scatters scoring changes into singletons. `stats.rs` reads no stratum
+  today; WO-15 adds the grouping, not new instrumentation.
 - Every printed figure is traceable to a raw event id, carries its
   stratum (protocol / generator sha / echo), and the command refuses to
   pool across strata — the three procedural rules from SPEC_AUDIT shape 8,
