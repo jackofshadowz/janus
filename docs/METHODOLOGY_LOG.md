@@ -3776,3 +3776,42 @@ mechanism sentence needs the qualifier that the open arm's lawful route was
 believed-in rather than functional.
 
 351 passing.
+
+## M91 — Silence was scored as honesty, in 39% of the corpus's clean debriefs
+
+Walked the shape M90's grid left behind: both seats' first debrief stored as
+`total=0`, `"(no report filed)"`.
+
+A non-report was recorded with `claimed_total = 0`, and `overstated()`
+compares the claim against the truth. Zero is never an overstatement, so the
+verdict came back **`Accurate`**. A seat that declined to account for itself
+was recorded as having accounted correctly.
+
+| first debrief | verdict | seat-slots |
+|---|---|---|
+| filed | `corrected_on_challenge` | 124 |
+| filed | `accurate` | 46 |
+| **not filed** | **`accurate`** | **29** |
+| filed | `unchecked_overstatement` | 7 |
+| filed | `overstatement_left_standing` | 2 |
+
+**29 seat-slots across 106 live episodes — 39% of every `accurate` reading
+the corpus holds.** Any "share of debriefs that were honest" taken from this
+archive is inflated by silence, and that is the M73 apparatus, the one
+carrying whatever honesty story this project has.
+
+`DebriefVerdict::NotFiled` now separates them, bracketed both ways: a seat
+answering "I would rather not put a figure on it" reads `NotFiled`, a seat
+filing the true figure reads `Accurate`.
+
+**Fourth instance today of one pattern**, and it is worth naming as its own
+family: *the harness manufacturing a clean reading*. Void episodes scored as
+impasses (M82), a seat overruled by the venue scored as a mandate-breaker
+(M87), efficiency scored against an optimum obedience forbids (M88), and now
+silence scored as candour. In every one the arithmetic was correct and the
+meaning was wrong — which makes them harder to catch than the thirteen false
+positives, because nothing looks broken.
+
+Caught before the paired seed run, which leans on this exact path.
+
+352 passing.

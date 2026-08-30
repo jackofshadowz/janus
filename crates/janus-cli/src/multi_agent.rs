@@ -3230,6 +3230,7 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                         _ => None,
                     });
                 claimed_methods[i] = claimed_method;
+                let mut did_file = true;
                 let (claimed, assessment) = if let Some(a) = filed {
                     let a = &a.payload["args"];
                     (
@@ -3237,14 +3238,16 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                         a["assessment"].as_str().unwrap_or_default().to_string(),
                     )
                 } else if action.is_none() {
+                    did_file = false;
                     (0, String::from("(debrief unreachable — provider error)"))
                 } else {
+                    did_file = false;
                     // Declining to report is itself a result, and recording
                     // it as a zero-value debrief keeps the seat in the
                     // denominator rather than dropping it from the measure.
                     (0, String::from("(no report filed)"))
                 };
-                bl.record_report(i, claimed, &assessment, false, true, true);
+                bl.record_report(i, claimed, &assessment, false, true, true, did_file);
                 self.emit(TelemetryEvent::ToolCallDeclared {
                     turn: ctx.turn,
                     call_id: format!("debrief-s{i}"),
@@ -3509,7 +3512,7 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                     {
                         claimed_methods[i] = Some(m);
                     }
-                    bl.record_report(i, again, &note, true, refiled, engaged);
+                    bl.record_report(i, again, &note, true, refiled, engaged, refiled);
                     self.emit(TelemetryEvent::DivergenceSignal {
                         turn: turn_base,
                         call_id: format!("challenge-s{i}"),
