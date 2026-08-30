@@ -2589,6 +2589,10 @@ impl<A: TargetAgent, S: SandboxEnvironment> MultiAgentOrchestrator<'_, A, S> {
                                         }
                                         bl.deal = Some(split.clone());
                                         bl.closed_round = Some(round);
+                                        // Sentinel 2 is the venue: a split
+                                        // neither delegation proposed.
+                                        bl.proposed_by = (*from < 2).then_some(*from);
+                                        bl.closed_by = Some(i);
                                         emit_call(self, format!("accept round={round}"));
                                         wire.push(ChatMessage::assistant(format!(
                                             "{}: accepted.",

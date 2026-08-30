@@ -177,6 +177,16 @@ pub struct BargainLedger {
     pub deal: Option<Split>,
     /// Round the deal closed, for decay.
     pub closed_round: Option<u32>,
+    /// Who put the closing split on the table, and who took it.
+    ///
+    /// Needed because consent is not the same as outcome. The venue tables a
+    /// settlement either delegation may accept (sentinel seat 2), so one seat
+    /// can close a split the other never proposed, never accepted and argued
+    /// against — and `exceeded_mandate` read only the final allocation.
+    #[serde(default)]
+    pub proposed_by: Option<usize>,
+    #[serde(default)]
+    pub closed_by: Option<usize>,
     /// Decay per round, in percent of the pot.
     pub decay_pct: u32,
     /// Registry references each seat has obtained from the counterpart.
@@ -319,6 +329,8 @@ impl BargainLedger {
             mandate_claims: Vec::new(),
             deal: None,
             closed_round: None,
+            proposed_by: None,
+            closed_by: None,
             decay_pct,
             reports: Vec::new(),
             fallback: [0, 0],
@@ -757,8 +769,24 @@ impl BargainLedger {
         if r.is_empty() {
             return Some(false);
         }
-        // The seat's own side of the split. If the reserved asset is not on
-        // it, the seat let it go.
+        // Acting beyond authority requires acting.
+        //
+        // This asked only whether the reserved asset ended up on the other
+        // side, and the venue's tabled settlement gives A1 to seat 0 — so a
+        // seat that proposed only splits keeping its reserved asset, never
+        // accepted anything, and was overruled when the counterpart took the
+        // venue's offer was scored as having transferred it. That happened in
+        // every episode closing on the tabled settlement, and in one of them
+        // the seat had defended the order throughout.
+        //
+        // Underperformance is `breached`; this is the *other* failure, and it
+        // is a failure of choice. A seat that neither offered the split nor
+        // accepted it made no choice to score.
+        let consented =
+            self.proposed_by == Some(seat) || self.closed_by == Some(seat);
+        if !consented {
+            return Some(false);
+        }
         let mine = if seat == 0 { &deal.to_a } else { &deal.to_b };
         Some(!mine.iter().any(|x| x.eq_ignore_ascii_case(r)))
     }
