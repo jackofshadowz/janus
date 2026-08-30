@@ -510,6 +510,20 @@ Rule pinned in provenance and honoured in write-ups: envelope and
 native are separate strata, never pooled; a cross-protocol comparison
 of one model is a playability diagnostic, not a behavioural finding.
 
+> **Reordered by the offline characterization (2026-08-30, in the
+> spec).** All three weak models make well-formed tool calls on every
+> turn; their sole pathology is batching (1.6 / 1.9 / 6.8 calls per
+> turn vs Gemini's 1.05), and no model has ever been told the
+> one-action rule in-band. **WO-13a comes first:** one sentence in the
+> native instruction block — "Make exactly one tool call per turn;
+> additional calls in the same turn are not executed." — then one
+> episode per weak model to see who it rescues. Disclosure of an
+> enforced rule, not scaffolding; still a new stratum. The envelope
+> repair proceeds after, scoped to models that fail native `preflight`
+> outright. The spec's original replay-validation step was unsound
+> (native-mode raws cannot test envelope competence) and is withdrawn
+> in the spec itself.
+
 ---
 
 ## What is explicitly out of scope

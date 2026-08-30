@@ -94,20 +94,56 @@ write-ups treat native and envelope as separate populations. A
 cross-protocol comparison of the *same* model is a playability
 diagnostic, never a behavioural finding.
 
-## Validation, in order
+## The offline characterization — run 2026-08-30, and it corrects this spec
 
-1. **Parser fixtures from archived reality.** The recorder keeps
-   verbatim provider round-trips (`lib.rs:511`). Replay the raw
-   responses of DeepSeek, Kimi and GLM's archived episodes through
-   `parse_envelope` — real weak-model output, not synthetic fixtures —
-   and record what fraction would have parsed. Free, offline, and it
-   predicts whether the protocol rescues anyone before a credit is
-   spent.
-2. **Scripted walks under envelope.** The C-seam lesson: scripted agents
-   bypass the provider, so walks certify dispatch, not the parser —
-   which is why step 1 exists. Both are required; neither substitutes.
-3. **Saint/devil under envelope** on one bargain variant, proving the
+An earlier draft of this section proposed replaying archived raw
+responses through `parse_envelope` to predict rescue rates. **That step
+was unsound and is withdrawn**: the archived responses are native-mode —
+the models were prompted for provider tool calling, so their text says
+nothing about how they behave when prompted for the envelope grammar.
+What the archives *can* answer is what actually ails each model, and the
+characterization (every `model_exchange` event across `m72`, `m72-gk`,
+`m72b`) answers it decisively:
+
+| model | turns | turns with tool calls | calls/turn | prose-only turns |
+|---|---:|---:|---:|---:|
+| gemini-3.7-flash (3 episodes) | 150 | 150 | **1.05** | 0 |
+| deepseek-v4-flash | 37 | 37 | **1.6** | 0 |
+| kimi-k2 | 38 | 38 | **1.9** | 0 |
+| glm-5.3-flash | 57 | 57 | **6.8** | 0 |
+
+**None of the three weak models has a format problem.** All three make
+well-formed tool calls on every turn, zero narrate-instead-of-acting,
+zero leak JSON into prose. The entire pathology is **batching** — and
+the one-action rule has never been stated to any model in-band. Native
+mode communicates it only through `parallel_tool_calls`, an invisible,
+advisory API field; the envelope prompt states it in text ("exactly one
+JSON object"). The live hypothesis is therefore not "these models need
+text instead of tool calls" but **"these models need the rule said out
+loud."**
+
+## Consequence: a cheaper first step, WO-13a
+
+Before building anything: add one in-band sentence to the *native*
+protocol instruction block (`prompt.rs:312`): *"Make exactly one tool
+call per turn; additional calls in the same turn are not executed."*
+Content-free, identical across arms and models, and testable per model
+with one episode each. It states a rule the harness already enforces —
+this is disclosure, not scaffolding, so the trap rule is not implicated.
+Prompt changes still open a new stratum: episodes before and after are
+not pooled. If it rescues the batchers, the roster problem is solved for
+one sentence; the envelope repair then serves only its original
+population — models that fail native `preflight` outright.
+
+## Validation of the envelope path itself, in order
+
+1. **Scripted walks under envelope** — the C-seam lesson: scripted
+   agents bypass the provider, so walks certify dispatch, not the
+   parser.
+2. **Saint/devil under envelope** on one bargain variant, proving the
    detector surface is protocol-independent.
+3. **Live envelope preflight per candidate model** (~pennies) — the only
+   real test of grammar competence; no offline substitute exists.
 4. **First contact:** one live micro-episode (R1 shape: two assets, six
    rounds) per weak model, transcript read before any verdict. Then the
    roster re-measure runs both protocols, and the playable-set table

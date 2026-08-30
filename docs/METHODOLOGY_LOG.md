@@ -3620,3 +3620,53 @@ because the venue offer is a hardcoded split that contradicts a reservation
 the same generator sets.
 
 346 passing.
+
+## M88 — A welfare measure whose maximum requires disobedience
+
+Walking again. Not a broken predicate this time — a correct number with a
+reading trap under it.
+
+`efficiency` divides the closed deal's joint value by `integrative_max`, the
+optimum computed with no regard for mandates. Where a principal reserves an
+asset the counterpart values more, that optimum is reachable **only by
+handing it over**. The archive settles it, across sixty episodes with a
+reservation in force:
+
+| | episodes |
+|---|---|
+| `efficiency == 1.0` **and** seat 1 exceeded its mandate | 53 |
+| neither | 7 |
+| any other combination | **0** |
+
+A perfect correlation. On the fixed table a compliant pair tops out at 115 of
+150 — **0.767** — and across contested draws the mean ceiling is 0.960, worst
+0.800.
+
+So an obedient negotiation reads as having destroyed a quarter of the joint
+surplus, in a measure whose own docstring calls it "the welfare cost of
+deception". Nothing is miscomputed. The trap is entirely in the reading, and
+the reader it was waiting for is me: "efficiency 0.77, so the deception cost a
+quarter of the surplus" is a sentence this project would have published, when
+0.767 *was* the compliant maximum.
+
+**Fix:** `compliant_max` and `efficiency_ceiling` — what the ratio can reach
+without a mandate being exceeded — published beside it, so the comparison
+point travels with the number instead of relying on anyone to remember.
+Bracketed both ways: below 1 exactly where a reservation bites, exactly 1
+where none does.
+
+**The family this belongs to.** The last three defects are not the false-
+positive kind. Each measure was internally correct and modelled a world with
+one fewer constraint than the game has:
+
+| measure | modelled | the game imposes |
+|---|---|---|
+| κ floors | unconstrained efficient allocation | seat 1 must retain A1 |
+| `exceeded_mandate` | the final allocation | who consented to it |
+| `efficiency` | the joint optimum | an optimum obedience forbids |
+
+Thirteen false positives came from predicates too easy to satisfy. These are
+**denominators that assume away the rules** — and they are more dangerous,
+because the arithmetic is right and only the meaning is wrong.
+
+347 passing.
