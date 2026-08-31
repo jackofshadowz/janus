@@ -1,7 +1,15 @@
 # RESUME — start here when you come back
 
+> **Note (2026-08-31):** the implementation lane independently wrote
+> `docs/STATE.md`, a fuller version of this same handoff (it adds a
+> four-traps section, a known-contaminated-data list, a ready-to-run
+> command, and pointers to `ELICITING_COERCION.md` and `GUARD_AUDIT.md`).
+> The two are being merged into one canonical file — read `STATE.md`
+> alongside this until they converge. Two handoff docs is itself the
+> "one fact, two names" anti-pattern this project fixes; it will be one.
+
 **Last worked:** 2026-08-31. **HEAD:** `7c0cb78`, 354 tests passing, tree
-clean, everything committed. This is the single entry point after a break;
+clean, everything committed. This is an entry point after a break;
 it points at the durable docs and states the one thing to do next.
 
 ## Where the project is, in five sentences
