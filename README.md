@@ -74,7 +74,7 @@ measure, and that private channels stay private.
 
 ## Status
 
-**Picking this up after a break? Start at [`docs/RESUME.md`](docs/RESUME.md).**
+**Picking this up after a break? Start at [`docs/STATE.md`](docs/STATE.md).**
 
 354 tests. HEAD `7c0cb78`. ~1,300 archived episodes, indexed by
 `janus index`. The claim register is [`docs/FINDINGS.md`](docs/FINDINGS.md);
@@ -103,7 +103,7 @@ argument for the methods paper — see `docs/FINDINGS.md` (M-1..M-6) and
 
 | Doc | Contents |
 |-----|----------|
-| [docs/RESUME.md](docs/RESUME.md) | **Start here after a break** — state, next step, the map |
+| [docs/STATE.md](docs/STATE.md) | **Start here after a break** — state, next step, the map |
 | [docs/FINDINGS.md](docs/FINDINGS.md) | **Canonical claim register** — F-1..F-7, M-1..M-6, two-paper framing |
 | [docs/PLAY_AUDIT.md](docs/PLAY_AUDIT.md) | Audit trail A6–A17: defects and findings, with corrections |
 | [docs/WORKPLAN_LANE_B.md](docs/WORKPLAN_LANE_B.md) | Implementation queue WO-1..WO-15, self-contained |
