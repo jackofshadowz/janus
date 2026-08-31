@@ -3815,3 +3815,45 @@ positives, because nothing looks broken.
 Caught before the paired seed run, which leans on this exact path.
 
 352 passing.
+
+## M92 — The debrief had the one-turn window too
+
+The paired seed run came back with `not_filed` on 6 of 8 seat-slots in the
+arm where trades completed, 3 of 8 in the other. It looked like a behavioural
+finding: completing a trade coincides with seats abandoning their debrief.
+
+It is not. **Every `not_filed`, in both arms, is a seat calling `list` at its
+debrief turn.** Not silence, not refusal — a seat checking its own ledger
+before reporting, in a window exactly one turn wide.
+
+M73 widened the *challenge* window to three turns after both of the corpus's
+"sustained overstatements" turned out to be seats checking their arithmetic
+inside a one-turn window. The debrief kept its single turn. Same defect, one
+phase upstream, and I walked past it while fixing the thing it feeds.
+
+**The clustering has a mechanical cause.** A seat that completed a trade is
+holding the counterpart's registry material and has more to check before
+accounting for it — so exchange completion raises the rate of *looking*, and
+the one-turn window converts looking into a missing report. Nothing about
+abandonment.
+
+**The same behaviour has now been scored three ways, all wrong:** `accurate`
+before M91, `not_filed` after it, and the truth is "checked first, then would
+have filed". M91 was still an improvement — silence and honesty must not
+share a verdict — but it was correcting the wrong half of a two-part error.
+
+**Fix,** identical to the challenge: three turns, reads and listings served
+against the sandbox, then "File your figure now." Only a seat that still
+files nothing is `NotFiled`. Bracketed — a seat that looks and then files
+reads exactly like one that files immediately.
+
+**What it costs.** The four clean pairs are uninterpretable for debrief
+verdicts, and the archive's 29 `not_filed` slots conflate refusal with
+diligence. Neither can support an honesty claim until re-read.
+
+**What it was worth.** The user flagged the cluster and declined to explain
+it from four seeds. Had we accepted the obvious story — completing trades
+makes seats abandon their debriefs — it would have been plausible,
+publishable, and entirely an artefact of a window width.
+
+353 passing.
