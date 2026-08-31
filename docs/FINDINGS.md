@@ -187,11 +187,18 @@ the collection tasking alone. Provenance: `results/runs/x22-*`, `fd9f38e`.
 
 ### M-1 — Almost every result this project produced was a harness defect
 
-**16 false positives and 4+ dead detectors**, each traced in
+**15+ false positives and 4+ dead detectors**, each individually traced in
 `METHODOLOGY_LOG.md`. The ratio is the finding: an eval that has not been
 adversarially audited reports its own bugs as model behaviour. The
 project's first apparent positive result (2/90 sustained overstatement) was
-itself withdrawn (M73) as two false positives.
+itself withdrawn (M73) as two false positives. *Count caveat:* the log
+names false positives up to the "fifteenth" in prose and one numerically
+(`#16`), but does not enumerate a clean sixteen, and at least one earlier
+"false positive" (a floor-not-stated alarm) was reclassified as the lane's
+own false alarm, not a harness defect. **Before any paper cites a number it
+must carry an explicit numbered index in the log that can be listed** — an
+audit paper claiming a count should be able to enumerate it. Until then the
+honest figure is "15+, individually traced."
 
 ### M-2 — A zero means six things; each now has an instrument
 
@@ -238,19 +245,41 @@ their own prior actions. This silently caused the filing loop, the
 re-read/re-do family across four models (65 `repeated_identical_call`
 firings), the inert exchange tool, and plausibly the near-write-off of
 three models as "unable to play" (M77 — they were playing; the harness
-discarded all but the first tool call per turn). Fixed by the echo (commit
-`fd9f38e`). Lesson: every silence chased this session traced to the harness
-withholding something true from the model — the one-action rule, the
-liveness of a dead channel, the model's own action history.
+discarded all but the first tool call per turn). **Available behind the
+`-echo` variant token since `fd9f38e`, off by default** — `echo_actions`
+and `exchange_completes` are `false` in all three spec constructors and set
+only by `variant.contains("echo")` / `"xchg"` (`demo.rs:1341`). "Fixed" is
+the wrong verb: `bargain-twodeal-contested` is still context-blind, and
+every variant run without the token reproduces the filing loop, the re-do
+family and the inert exchange tool. **The stratum split is a per-run
+property of the variant string, not a date** — a reader must not assume
+post-`fd9f38e` episodes are stratum-two; most are not. This is also what
+makes the 2×2 possible: both switches off unless named. Lesson: every
+silence chased this session traced to the harness withholding something
+true from the model — the one-action rule, the liveness of a dead channel,
+the model's own action history.
 
 ### M-6 — The corrections consistently deflate, which is the trust argument
 
-Four fixes in one day cut against a more flattering reading rather than
-toward one: void episodes scored as impasses (A12), the efficiency ceiling,
-the F-1 "route was functional" caveat (F-6), and the F-2 "failed honestly"
-rescore (A14). An instrument whose own corrections keep lowering its
-results is behaving as a trustworthy one should. This pattern is a stronger
-argument for the harness than any single number it produces.
+**Five** corrections cut against a more flattering reading rather than
+toward one: void episodes scored as impasses (A12); the efficiency ceiling;
+the F-1 "route was functional" caveat (F-6); the F-2 "failed honestly"
+rescore (A14); and the F-2 re-read that withdrew even its *replacement*
+framing. That last is the sharpest, because each successive framing of F-2
+was **weaker than the last, and the weakest is the one that survived** —
+honest-upward → evasion-then-compliance → 15 informative / 3 indeterminate,
+three revisions, each less flattering, none forced by an outside reviewer
+(one lane supplied a framing and the other's re-read deflated it). An
+instrument whose own corrections keep lowering its results is behaving as a
+trustworthy one should, and this is a stronger argument for the harness than
+any single number it produces.
+
+**The deflation was not costless, which is the point.** Two of these
+corrections invalidated data already paid for, and one — the debrief window
+— invalidated the debrief readouts of a run *commissioned specifically to
+produce them*. A trust argument that only ever cost nothing would be
+suspect; this one repeatedly threw away spent budget rather than keep a
+flattering number, and says so.
 
 ---
 
