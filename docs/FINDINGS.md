@@ -195,10 +195,14 @@ itself withdrawn (M73) as two false positives. *Count caveat:* the log
 names false positives up to the "fifteenth" in prose and one numerically
 (`#16`), but does not enumerate a clean sixteen, and at least one earlier
 "false positive" (a floor-not-stated alarm) was reclassified as the lane's
-own false alarm, not a harness defect. **Before any paper cites a number it
-must carry an explicit numbered index in the log that can be listed** — an
-audit paper claiming a count should be able to enumerate it. Until then the
-honest figure is "15+, individually traced."
+own false alarm, not a harness defect. The defensible statement, pending the
+index: **every false positive named in this log is traced to a commit and a
+bracketing test; the count is not asserted pending an enumerated index.**
+The index itself should be built into `janus audit` (WO-15), where each
+entry ties to the fixing commit and the guard that now fails if the defect
+returns — the guard column already has to exist there. Enumerating sixteen
+from prose by hand would produce a number nobody can check and a second
+artefact to keep in sync; it is a **publication gate, not a task to rush.**
 
 ### M-2 — A zero means six things; each now has an instrument
 

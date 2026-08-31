@@ -617,9 +617,11 @@ These runs went through `duel` (`run_duel`, `main.rs:1324`), whose loop has
 **no consecutive-failure counter, no liveness check, no break.** So it is
 not that the abort read the wrong signal; it is that the `duel` path never
 had one, and nothing was ever going to stop the sweep. **Fixed in the duel
-loop by the lane, keyed on `live_turns == 0`, threshold two** (one dead
-episode can be transient; two consecutive means wallet or provider is gone
-and every further seed archives nothing). My original "wired to the wrong
+loop (commit `6a1e791`, M93), keyed on `live_turns == 0`, threshold two**
+(one dead episode can be transient; two consecutive means wallet or
+provider is gone and every further seed archives nothing); it reports how
+many seeds went unrun. A drained wallet now costs two episodes, not ten.
+M93 records the corrected diagnosis: not a blind abort, an absent one. My original "wired to the wrong
 signal" read `run_batch` and assumed `duel` shared it — a
 wrong-function error, the sweep-control analogue of the field-nesting trap
 below.

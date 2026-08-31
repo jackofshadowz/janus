@@ -2,8 +2,25 @@
 
 **Date:** 2026-08-30 · **Status: design.** Build order WO-15. Instrument
 work, freeze-safe. This is the generalisation of every hand-audit in
-`HARNESS_AUDIT.md` (A1–A5) and `PLAY_AUDIT.md` (A6–A14): the same
+`HARNESS_AUDIT.md` (A1–A5) and `PLAY_AUDIT.md` (A6–A17): the same
 questions, asked of every detector at once, from source, on every commit.
+
+## The deeper pattern: one fact, one name
+
+A recurring class of defect this session was **not** a bad detector at all —
+it was two parts of the system holding the same fact under different names,
+so a reading of one silently disagreed with the other. The
+`summary.met_collection` (None) vs `summary.bargain.met_collection`
+([True,True]) trap cost three separate misreadings across both lanes; the
+void-episode abort (M93) failed because the scorer marked an episode void
+while the sweep controller read a different signal for the same condition;
+M48, M65 and the ledger/brief twin literals were the same shape one layer
+down. None of these is caught by a saint or devil bracket. So the audit's
+usefulness may be **less about detectors than about making one fact have
+one name**: a single canonical path per quantity, defined in source, with
+the command refusing or warning on any second name for it. That is the
+cheapest defect class to mechanise away and the most repeated, and it
+should be treated as a first-class column, not a footnote.
 
 ## The problem this solves
 

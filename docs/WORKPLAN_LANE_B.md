@@ -713,6 +713,23 @@ The existing hand-audit tests become WO-15's regression fixtures rather
 than the method: each known defect is a row whose cells must read the way
 the audit that found it concluded.
 
+Two additions folded in 2026-08-31:
+
+- **The numbered false-positive index lives here.** The FINDINGS count is
+  currently "15+, individually traced" and cannot be asserted as a number
+  until an enumerated index exists — each entry tied to the fixing commit
+  and the guard that now fails if it returns. That is the guard column
+  `janus audit` already needs, so the index is a `janus audit` deliverable,
+  not a hand-built list (which would be a second thing to keep in sync and
+  a number nobody could check). It is a **publication gate.**
+- **A name-uniqueness check, first-class.** Beyond the detector matrix, the
+  audit must verify one canonical path per quantity and warn on any second
+  name for the same fact (`summary.x` vs `summary.bargain.x`; the
+  scorer-void vs sweep-abort signal split, M93). This "one fact, one name"
+  class caused three misreadings and one absent-abort this session and is
+  caught by no bracket — it may be the audit's highest-value output. See
+  the deeper-pattern section of `SPEC_AUDIT.md`.
+
 ---
 
 ## What is explicitly out of scope
