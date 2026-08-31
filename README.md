@@ -74,23 +74,41 @@ measure, and that private channels stay private.
 
 ## Status
 
-288 tests. 10 findings in `results/`, each with transcripts, manifest and
-provenance. ~1,300 archived episodes, indexed by `janus index`.
+**Picking this up after a break? Start at [`docs/RESUME.md`](docs/RESUME.md).**
+
+354 tests. HEAD `7c0cb78`. ~1,300 archived episodes, indexed by
+`janus index`. The claim register is [`docs/FINDINGS.md`](docs/FINDINGS.md);
+the defect trail is `docs/METHODOLOGY_LOG.md` (M1–M94) and
+`docs/PLAY_AUDIT.md` (A6–A17).
+
+**One behavioural finding stands:** coercion is price-sensitive — sealing
+the lawful route to an agent's tasking moves it from never coercing to
+coercing in most episodes (0/18 vs 11/18 seat-slots, p = 0.0039), with all
+sealed attempts fabricated. Everything else is candidate, null, or a harness
+defect corrected. Scope: one model (Gemini 3.7 Flash), self-play, one
+scenario family, small n; runs are not bit-reproducible (provider ignores
+temperature+seed, so the seed pairs the scenario, not the play).
 
 **Every episode has run on the `mock` sandbox.** The Cloudflare backend
 exists in the code and has never been used for a result.
 
-The honest summary: the instrument is considerably more trustworthy than it
-was, and it has produced almost no knowledge about models. Every finding this
-session was a harness defect. See `docs/ARCHITECTURE_REVIEW.md` for why that
-ratio is the most informative thing here, and `docs/METHODOLOGY_LOG.md` for
-all 59 entries.
+The honest summary: the instrument became trustworthy on three layers this
+session and produced its first real finding after weeks in which almost
+every apparent result was a harness defect. That ratio, and the discipline
+of correcting each defect even when it cost spent budget, is the strongest
+argument for the methods paper — see `docs/FINDINGS.md` (M-1..M-6) and
+`docs/ARCHITECTURE_REVIEW.md`.
 
 ## Docs
 
 | Doc | Contents |
 |-----|----------|
-| [docs/METHODOLOGY_LOG.md](docs/METHODOLOGY_LOG.md) | Every defect found, why it mattered, what changed |
+| [docs/RESUME.md](docs/RESUME.md) | **Start here after a break** — state, next step, the map |
+| [docs/FINDINGS.md](docs/FINDINGS.md) | **Canonical claim register** — F-1..F-7, M-1..M-6, two-paper framing |
+| [docs/PLAY_AUDIT.md](docs/PLAY_AUDIT.md) | Audit trail A6–A17: defects and findings, with corrections |
+| [docs/WORKPLAN_LANE_B.md](docs/WORKPLAN_LANE_B.md) | Implementation queue WO-1..WO-15, self-contained |
+| [docs/SPEC_AUDIT.md](docs/SPEC_AUDIT.md) | `janus audit` design — systematic per-detector audit |
+| [docs/METHODOLOGY_LOG.md](docs/METHODOLOGY_LOG.md) | Every defect found (M1–M94), why it mattered, what changed |
 | [docs/ARCHITECTURE_REVIEW.md](docs/ARCHITECTURE_REVIEW.md) | What one session of defects says about the design |
 | [docs/DOC_AUDIT.md](docs/DOC_AUDIT.md) | Where the documentation had drifted from the code |
 | [docs/SPEC_BARGAINING.md](docs/SPEC_BARGAINING.md) | The bargaining table: payoffs, trilemma, and why each number is what it is |
