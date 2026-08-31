@@ -1356,7 +1356,35 @@ async fn run_duel(
     let mut turned_count = [0usize; 2];
     // Playability, accumulated per episode and written into the manifest.
     let mut play: Vec<janus_cli::playability::EpisodePlay> = Vec::new();
+    // A drained wallet must stop the sweep, not fill it with voids.
+    //
+    // Two runs have now exhausted the account mid-flight and kept going:
+    // WO-10 burned five seeds per arm into `402 Payment Required`, and the
+    // paired MPR run did it again — 917 payment errors, seeds 47-51 dead in
+    // both arms, every one of them running its full forty rounds against a
+    // provider that answered nothing.
+    //
+    // `run_batch` has an abort, but this is the `duel` path and it never had
+    // one: no consecutive-failure count, no liveness check, no break. The
+    // scorer marks these episodes void and the sweep controller never looked.
+    //
+    // Two in a row is the signal. A single dead episode can be a transient;
+    // two consecutive means the wallet or the provider is gone, and every
+    // further seed spends wall-clock to archive nothing.
+    let mut consecutive_void = 0usize;
     for (gi, &seed) in seeds.iter().enumerate() {
+        if consecutive_void >= 2 {
+            writeln!(
+                out,
+                "\n  ⚠ aborting after {consecutive_void} consecutive dead episodes \
+                 (no model answered a single turn — check credits/provider). \
+                 {} seed(s) not run.",
+                seeds.len() - gi
+            )
+            .unwrap();
+            out.flush().unwrap();
+            break;
+        }
         let mut spec = janus_cli::demo::marktplatz_duel_variant_seeded(variant, seed);
         spec.max_rounds = if rounds > 0 { rounds } else { spec.max_rounds };
         let (pa, ma) = model_a
@@ -1451,6 +1479,7 @@ async fn run_duel(
             std::fs::write(&err_path, md).ok();
         }
         let summary = run_result?;
+        consecutive_void = if summary.live_turns == 0 { consecutive_void + 1 } else { 0 };
 
         for ev in &events {
             if let TelemetryEvent::TargetMessage { turn, role, content } = ev {
