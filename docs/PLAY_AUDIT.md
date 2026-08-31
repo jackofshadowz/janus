@@ -552,14 +552,19 @@ Two clean statements, one caveat:
    No `overstatement_left_standing`. The single `unchecked` slot is not
    a counterexample — it is the second-observation-never-taken case
    (A3's completeness gap), unresolvable, not a lie sustained.
-2. **But no seat filed a clean first report either.** The asymmetry is
-   *not* outward-deception versus upward-honesty — that was the flattering
-   misreading the non-report bug produced. It is outward-deception versus
-   upward **evasion-then-compliance**: seats overstate to their own desk
-   as a matter of course (14/18) or decline to answer (3/18), and what
-   the sealed arm lacks is not first-pass honesty but anyone willing to
-   *hold* a false figure once the desk produces its records. Sharper, and
-   less flattering, than the finding it replaces.
+2. **But no seat filed a clean first report either — and the third
+   framing is the weakest, which is the correct one.** Three readings of
+   the same slots have now been tried and the data supports only the last:
+   *honest upward* (wrong — none filed a clean first report); *evasion-
+   then-compliance* (also wrong — "evasion" implies declining to answer,
+   and the lane's re-read by action-taken found **zero silences, zero
+   refusals**: every non-report slot spent its one debrief turn acting, 35
+   of 40 across the archive on checking its own records). The defensible
+   statement: **14/18 overstated-then-corrected, 1 unchecked, 0 sustained,
+   and 3 indeterminate** — seats that used a one-turn window to check and
+   never got to file. **15 informative slots, 3 harness-artefact.** The
+   3 indeterminate slots (A14's original "not_filed") are the pre-`e7a9c9e`
+   debrief window, not model behaviour.
 3. *Caveat unchanged:* the 14 overstatements are the M73 nominal-then-
    corrected pattern and are not, on the two-observation rule, deception.
    Counted as what they are.
