@@ -208,9 +208,17 @@ and by the command's design:
   label, never as the key. `stats.rs` reads none of this today; WO-15 adds
   the grouping key, not new instrumentation.
 - **A field name is a claim.** `summary.met_collection` (None) vs
-  `summary.bargain.met_collection` ([True,True]) cost a wrong readout. The
-  audit addresses detectors by a single canonical path defined in source,
-  so the same name cannot mean two things.
+  `summary.bargain.met_collection` ([True,True]) has now cost **three
+  separate wrong readings** across both lanes (the A14 miss, the A16/A17
+  `met_collection` misread, and the lane's own `runway_rounds` slip) — a
+  top-level field and a nested field share a name and the top-level one
+  reads `None`/absent, which looks like a real negative. The audit
+  addresses every metric by a single canonical path defined in source, and
+  `janus audit` should **refuse or warn on any top-level access to a name
+  that also exists under `bargain`**, so the same name cannot silently mean
+  two things. This is the most-repeated defect of the session that is
+  neither a false positive nor a dead detector — a pure reading hazard, and
+  the cheapest of all to mechanise away.
 
 ## Sequencing
 

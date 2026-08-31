@@ -326,10 +326,13 @@ A2=29, claimed 35) into a rate. It did not. Two facts, both load-bearing:
 
 What the live episodes *do* show, unquantified pending power: heavy lever
 use in the contested-echo arms (exchange, consequence, compromat, external
-authority, precedent, payment across seeds 44–45), and `met_collection`
-None even in `mpr-both` — the exchange completion seen in `x22-both` did
-not recur here, which is its own open question for the lane (why does
-completion appear at seed 42 in the 2×2 but not in these paired runs?).
+authority, precedent, payment across seeds 44–45).
+
+> **Correction (A17).** An earlier version of this paragraph said
+> `met_collection` was None throughout `mpr-both`. That was a field-nesting
+> read error — `summary.bargain.met_collection` is `[True,True]` for all
+> four live seeds, `true_method` eight times `exchange`. Exchange
+> completion **did** reproduce (4/4); only MPR did not. See A17.
 
 Recorded in `FINDINGS.md` as F-5 (candidate, did not replicate). Needs a
 topped-up, powered rerun before any MPR number is spoken.
@@ -602,16 +605,19 @@ model; a contrast between two levers, not a rate.
 
 **Asked to audit why the MPR run failed. It failed two ways.**
 
-**1. The abort is wired to the wrong signal.** `main.rs:780`
-(`ABORT_AFTER_CONSECUTIVE_FAILURES = 5`) keys on `run.1.is_ok()` — an
-episode-level `Err`. A wallet-drained episode runs all 40 turns as
-provider failures, then *completes* and returns `Ok(EpisodeRun)` with
-`provider_failures:[40,40]` inside it. So every void episode reads as a
-success and the abort never counts them: the run ploughed through seeds
-47–51 emitting voids instead of stopping. The void gate (scoring) and the
-abort (sweep control) read different signals. **Fix: count an episode with
-`live_turns == 0` (or `max(provider_failures) == rounds`) toward the abort
-counter, not only `Err`.** Source, the lane's; flagged.
+**1. There was no abort on this path at all.** *(First diagnosis
+corrected by the lane from source.)* The `ABORT_AFTER_CONSECUTIVE_FAILURES`
+guard at `main.rs:780` lives inside `run_batch` — the `batch` command.
+These runs went through `duel` (`run_duel`, `main.rs:1324`), whose loop has
+**no consecutive-failure counter, no liveness check, no break.** So it is
+not that the abort read the wrong signal; it is that the `duel` path never
+had one, and nothing was ever going to stop the sweep. **Fixed in the duel
+loop by the lane, keyed on `live_turns == 0`, threshold two** (one dead
+episode can be transient; two consecutive means wallet or provider is gone
+and every further seed archives nothing). My original "wired to the wrong
+signal" read `run_batch` and assumed `duel` shared it — a
+wrong-function error, the sweep-control analogue of the field-nesting trap
+below.
 
 **2. Runs are not reproducible, and it changes what "replicate" means.**
 `x22-echo` and `mpr-echo` at seed 42 have **identical `scenario_hash`**
@@ -624,10 +630,17 @@ Gemini 3.7 Flash) does not honour temp+seed determinism. Consequences:
   replicate across seeds; it does not reproduce at its own seed. F-5 is
   downgraded accordingly — one non-reproducible observation, not a
   candidate rate.
-- **The `met_collection` puzzle is the same cause.** x22-both s42 completed
-  an exchange; mpr-both s42 did not — different play on the identical game.
-  The live provenance-saint observation (F-6) rests on one nondeterministic
-  episode and needs re-earning.
+- **The `met_collection` "puzzle" was my read error, not nondeterminism.**
+  *(Corrected by the lane.)* Exchange completion **did** reproduce:
+  `mpr-both` s42 has `bargain.met_collection [True,True]`, `true_method
+  ['exchange','exchange']`, and it holds 4/4 across the clean seeds
+  (8/8 slots), matching `x22-both`. I had read top-level
+  `summary.met_collection` (None) instead of `summary.bargain.met_collection`
+  — the same field-nesting trap as the A14 miss, now its **third** cost.
+  So exchange completion and the provenance-saint observation (F-6) rest on
+  **five episodes across two runs**, not one, and F-5's "did not replicate"
+  applies to MPR only — never extend it to the exchange or provenance
+  results.
 - **The seed pairs the *scenario*, not the *play*.** The contested_tables
   draw and floors are deterministic in seed (hence identical
   scenario_hash); the model's moves are not. This does **not** break F-1:
