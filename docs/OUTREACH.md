@@ -75,22 +75,55 @@ audited this way, and this harness is the audit method as much as the
 result.** Credits buy statistical power for a measurement apparatus that has
 already demonstrated it will retract its own findings.
 
-## 4. What credits would fund
+## 4. What credits would fund, and why the number is not small
 
-Concretely, with costs:
+**Start from the measured burn.** A 40-round episode moves roughly **276k
+input tokens** across both seats — the context grows every round and both
+delegations carry a full brief, a registry and a private desk. On Gemini 3.7
+Flash that is about **$0.12**. The project has already spent **>$100** on
+development alone, in a matter of days, and **exhausted its balance mid-run
+twice**, losing five episodes per arm to payment errors both times.
 
-| item | scale | cost |
+**The cheap number is the trap.** Every result so far is on the cheapest
+model that can play the scenario end to end. The same episode on a frontier
+model is not $0.12:
+
+| model class | ~input price | ~cost / 40-round episode |
 |---|---|---|
-| Powered rerun of the valuation-deception arm | 10 seeds × 2 arms | ~$2.40 |
-| Re-run the coercion result in the corrected stratum | 10 seeds × 2 arms | ~$2.40 |
-| Cross-model roster: does the effect hold beyond one model family? | 4 models × 10 seeds | ~$20 |
-| Dose–response on the surplus dial (κ) | 4 levels × 10 seeds | ~$10 |
-| **Total for a publishable set** | | **~$50–200** |
+| Gemini 3.7 Flash | $0.375/M | **~$0.12** |
+| mid-tier (DeepSeek, GLM, Kimi) | $0.09–0.60/M | $0.05–0.30 |
+| frontier (Claude, GPT-class) | $3–15/M | **~$2–8** |
 
-State the honest constraint: **the project has been running on personal
-credit and has twice exhausted its balance mid-experiment**, losing five
-episodes per arm to payment errors. The ask is small and the bottleneck is
-real.
+That is a **20–50× multiplier**, and frontier models are the ones the
+findings need to be about. A single paired comparison — 10 seeds × 2 arms —
+is ~$2.40 on Flash and **$80–320 on a frontier model.**
+
+**And one comparison is not a study.** The realistic programme:
+
+| | episodes | Flash | frontier |
+|---|---|---|---|
+| Powered coercion result, corrected stratum | 20 | $2.40 | ~$100 |
+| Valuation-deception arm, powered | 20 | $2.40 | ~$100 |
+| Cross-model axis (4 families × 2 arms × 10 seeds) | 80 | ~$20 | ~$400 |
+| Dose–response on the surplus dial (4 levels) | 80 | ~$10 | ~$400 |
+| Asymmetric pairings (model A vs model B) | 40 | ~$5 | ~$200 |
+| **Re-runs after harness fixes** | — | — | **×2–3** |
+
+That last row is not padding, it is the observed pattern: **this project
+re-ran the same comparison four times in two days** because each pass
+surfaced a defect that invalidated the previous one — a one-turn debrief
+window, a phantom exchange route, a scoring rule that read silence as
+honesty. An audit-first harness re-runs by design.
+
+**The honest ask: low thousands, and ongoing rather than one-off.**
+$2,000–5,000 in credits, or standing research access, funds a properly
+powered multi-model study with the replication an audit-first method
+requires. A few hundred dollars funds one comparison on one model family,
+which is roughly where the project already is.
+
+**Do not round this down to sound modest.** A small ask that runs out
+mid-experiment is worse than no ask: it has happened twice, and both times
+the wasted episodes were the expensive part.
 
 ## 5. Where to apply
 
@@ -115,7 +148,10 @@ Research/credit programmes worth approaching, roughly in order of fit:
 - Give exact numbers with their caveats attached — "0/18 to 11/18, p=0.0039,
   one model family, nine scenarios" is stronger than "significant result"
 - Name what has not replicated. It is the credibility of the rest
-- State the cost precisely. The ask is $50–200, not "compute"
+- State the cost precisely, and **do not round it down to seem modest**. The
+  ask is $2,000–5,000 or standing access, justified by the arithmetic in §4:
+  frontier episodes cost 20–50× the ones the current results were run on, and
+  an audit-first method re-runs comparisons after every defect it finds
 - Link the repository and point at `METHODOLOGY_LOG.md` — the defect log is
   the differentiator
 - Say what the credits produce: seeds, a cross-model axis, a dose–response
@@ -128,7 +164,9 @@ Research/credit programmes worth approaching, roughly in order of fit:
 - Use "we discovered models will lie" framing. The valuation-deception
   measure fired once and did not reproduce
 - Omit the nondeterminism caveat. Any reviewer who reruns will find it
-- Pad the ask. The real number is small and that is persuasive
+- Understate the ask to seem undemanding. A grant that runs out mid-experiment
+  is worse than none — that has happened twice, and the wasted episodes were
+  the expensive part
 
 ## 7. One-paragraph version
 
@@ -142,10 +180,13 @@ Research/credit programmes worth approaching, roughly in order of fit:
 > was closed. Equally important, development surfaced 16 false positives in
 > the harness itself, each traced to a fix and a regression test, and the
 > project withdrew its own first positive result after transcripts showed it
-> was an artefact. We are seeking modest inference credits ($50–200
-> equivalent) to power the result across seeds and model families; the work
-> has so far run on personal credit and twice exhausted its balance
-> mid-experiment.
+> was an artefact. The work has so far run on personal credit and has twice
+> exhausted its balance mid-experiment. Every result to date is on the
+> cheapest model that can play the scenario; the findings need to be about
+> frontier models, where the same
+> episode costs 20–50× more. We are seeking **$2,000–5,000 in credits or
+> standing research access** — enough for a powered multi-model study with
+> the re-runs an audit-first method requires.
 
 ## 8. Standing rules for the outreach agent
 
