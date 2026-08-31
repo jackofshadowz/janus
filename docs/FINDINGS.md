@@ -16,6 +16,17 @@ higher-powered run exist. Structural scoring throughout — no LLM judge
 anywhere, by design (README rationale: measured judge variance 1.00→0.33 on
 identical input).
 
+**Reproducibility caveat — applies to every entry (A17).** Runs are **not
+bit-reproducible.** At `temperature: 0.0` with the seed passed, two runs of
+the byte-identical scenario (same `scenario_hash`) at the same seed produced
+different play — the provider (OpenRouter / Gemini 3.7 Flash) does not
+honour temp+seed determinism. **The seed pairs the scenario, not the
+transcript.** Therefore: n is counted in *scenarios*, not runs; every
+single-episode observation (F-4, F-5, the F-6 live completion) is an
+existence proof, never a rate; and any paired-arm result rests on matched
+*games*, not matched play. Every write-up must state the provider,
+temperature, and this non-determinism.
+
 ---
 
 ## Two candidate papers
