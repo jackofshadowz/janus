@@ -135,3 +135,7 @@ janus index
 
 `janus preflight` first: it verifies a model can make a tool call with
 required parameters intact, which several cannot.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
